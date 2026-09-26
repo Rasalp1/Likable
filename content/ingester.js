@@ -74,9 +74,26 @@ window.DesignifyIngester = {
         nodeData.href = el.getAttribute('href') || '#';
       }
       if (tag === 'input' || tag === 'textarea') {
-        nodeData.type = el.getAttribute('type') || 'text';
+        const inputType = (el.getAttribute('type') || 'text').toLowerCase();
+        nodeData.type = inputType;
         nodeData.placeholder = el.getAttribute('placeholder') || '';
-        nodeData.value = el.value || '';
+
+        // Security & Privacy: STRICTLY guard against harvesting passwords or credentials
+        const nameAttr = (el.name || '').toLowerCase();
+        const idAttr = (el.id || '').toLowerCase();
+        const autoAttr = (el.getAttribute('autocomplete') || '').toLowerCase();
+
+        const isSensitive = [
+          'password', 'hidden', 'file'
+        ].includes(inputType) ||
+        /pass|pwd|secret|token|auth|key|credit|card|cvv|cvc|ssn|pin/i.test(nameAttr) ||
+        /pass|pwd|secret|token|auth|key|credit|card|cvv|cvc|ssn|pin/i.test(idAttr) ||
+        /pass|credit|card|cvv|cvc|ssn|pin/i.test(autoAttr);
+
+        if (!isSensitive) {
+          // Truncate non-sensitive prefilled values to avoid leaking personal data
+          nodeData.value = el.value ? el.value.trim().slice(0, 50) : '';
+        }
       }
       if (tag === 'img') {
         nodeData.src = el.getAttribute('src') || '';

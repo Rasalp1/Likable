@@ -27,6 +27,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.action === 'call_bridge_redesign') {
+    fetch(`${BRIDGE_URL}/api/redesign`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Designify-Client': 'chrome-extension'
+      },
+      body: JSON.stringify(message.payload)
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Bridge server error ${res.status}: ${errText}`);
+        }
+        return res.json();
+      })
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
   if (message.action === 'inject_designify') {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (!tabs || !tabs[0]) {

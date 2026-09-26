@@ -2,3 +2,16 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# Sensitive credentials & environment
+.env
+.env.*
+*.pem
+*.key
+*.cert
+.bridge_token
+
+# Editor & OS artifacts
+.vscode/
+.idea/
+Thumbs.db

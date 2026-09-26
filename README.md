@@ -36,7 +36,11 @@ All original website functionality—such as clicks, link navigations, typing in
 The bridge server enables the Chrome extension to safely invoke your local `claude` or `codex` CLIs:
 
 ```bash
-cd "/path/to/likable"
+# Clone the repository
+git clone https://github.com/Rasalp1/Likeable.git
+cd Likeable
+
+# Start the local bridge
 npm start
 # or
 node server/index.js
@@ -47,10 +51,10 @@ The server will start on `http://127.0.0.1:3030` and automatically verify that `
 ### 2. Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** in the top-right corner.
-3. Click **Load unpacked**.
-4. Select the project folder:
-   `/path/to/likable`
-5. The **Designify** extension will appear in your Chrome toolbar!
+3. (Optional) Run `npm run build` to create the production `dist/` bundle.
+4. Click **Load unpacked**.
+5. Select the project directory (or the `dist/` directory).
+6. The **Designify** extension will appear in your Chrome toolbar!
 
 ### 3. Redesign Any Website
 1. Visit any website (e.g. Wikipedia, Reddit, Hacker News, or an internal dashboard).

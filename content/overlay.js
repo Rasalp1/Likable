@@ -58,11 +58,26 @@ window.DesignifyOverlay = {
   },
 
   /**
+   * Sanitizes AI-generated HTML before rendering inside the Shadow DOM:
+   * - Strips <script> tags
+   * - Strips inline event handlers (onerror, onload, onclick, onmouseover, etc.)
+   * - Neutralizes javascript: pseudo-protocols in href and src attributes
+   */
+  sanitizeHtml(html) {
+    if (!html) return '';
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '')
+      .replace(/(href|src)\s*=\s*["']?\s*javascript:[^"'>\s]+/gi, '$1="#"');
+  },
+
+  /**
    * Renders a new redesign inside the Shadow DOM
    */
   render({ html, css, summary, themeName }) {
     this.init();
-    this.activeRedesign = { html, css, summary, themeName };
+    const sanitizedHtml = this.sanitizeHtml(html);
+    this.activeRedesign = { html: sanitizedHtml, css, summary, themeName };
 
     const rawTheme = (themeName || '').toLowerCase();
     let currentThemeBg = '#0d0e12';
@@ -193,7 +208,7 @@ window.DesignifyOverlay = {
       </style>
 
       <div id="designify-canvas-wrapper">
-        ${html}
+        ${sanitizedHtml}
       </div>
 
       <div id="designify-split-divider">

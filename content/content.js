@@ -76,27 +76,45 @@ window.DesignifyCoordinator = {
       screenshotBase64
     };
 
-    // 4. Send to Local Bridge Server
+    // 4. Send to Local Bridge Server (via background service worker for extension-origin security)
     const engineLabel = engine === 'codex' ? 'Codex' : 'Claude';
     window.DesignifyHUD?.updateProgress(55, `Redesigning structure with ${engineLabel}...`, 'Synthesizing modern layout, color palette & typography');
     window.DesignifyHUD?.startSynthesisTicker(engine);
 
-    console.log(`[Designify] Sending request to local bridge at ${BRIDGE_URL}/api/redesign...`);
+    console.log(`[Designify] Sending request to local bridge...`);
     let result = null;
 
     try {
-      const response = await fetch(`${BRIDGE_URL}/api/redesign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        const bgRes = await new Promise((resolve) => {
+          chrome.runtime.sendMessage({
+            action: 'call_bridge_redesign',
+            payload
+          }, resolve);
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Bridge returned error ${response.status}: ${errorText}`);
+        if (!bgRes || !bgRes.success) {
+          throw new Error(bgRes?.error || 'Bridge request failed');
+        }
+        result = bgRes.data;
+      } else {
+        // Fallback for standalone test harness outside Chrome extension context
+        const response = await fetch(`${BRIDGE_URL}/api/redesign`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Designify-Client': 'chrome-extension'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Bridge returned error ${response.status}: ${errorText}`);
+        }
+
+        result = await response.json();
       }
-
-      result = await response.json();
     } catch (err) {
       window.DesignifyHUD?.stopSynthesisTicker();
       console.warn('[Designify] Bridge request failed or timed out:', err);

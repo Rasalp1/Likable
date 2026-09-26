@@ -10,9 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3030;
+const HOST = '127.0.0.1';
 
-// Resolve CLI executable path dynamically
+// Validate and resolve CLI executable path dynamically
 function resolveBinary(name) {
+  if (!name || !/^[a-zA-Z0-9_-]+$/.test(name)) return null;
+
   const candidates = [
     path.join(os.homedir(), '.local/bin', name),
     `/usr/local/bin/${name}`,
@@ -56,11 +59,26 @@ function getBinaryVersion(binPath) {
 const CLAUDE_BIN = resolveBinary('claude');
 const CODEX_BIN = resolveBinary('codex');
 
-// Helper to set CORS headers
-function setCorsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// Validate request origin to block drive-by web requests from untrusted sites
+function isOriginAllowed(origin) {
+  if (!origin) return true; // Direct CLI, Node, curl, or same-origin
+  if (origin === 'null') return true; // file:// local test pages
+  if (origin.startsWith('chrome-extension://')) return true; // Chrome extension
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true; // Local dev server
+  return false;
+}
+
+// Helper to set CORS headers safely
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Designify-Client');
 }
 
 // Extract JSON from potential markdown codeblocks, headers, or text
@@ -153,7 +171,15 @@ function runCLI({ engine = 'claude', prompt, workDir }) {
 
 // Server request handler
 const server = http.createServer(async (req, res) => {
-  setCorsHeaders(res);
+  setCorsHeaders(req, res);
+
+  // Security gate: Block requests from untrusted external web origins
+  if (req.headers.origin && !isOriginAllowed(req.headers.origin)) {
+    console.warn(`[Designify Security] Blocked untrusted cross-origin request from: ${req.headers.origin}`);
+    res.writeHead(403, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Forbidden: Cross-origin access from untrusted web origins is blocked for security.' }));
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -322,11 +348,12 @@ server.on('error', async (err) => {
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, HOST, () => {
   const claudePath = CLAUDE_BIN || resolveBinary('claude');
   const codexPath = CODEX_BIN || resolveBinary('codex');
 
-  console.log(`🚀 Designify Bridge Server running at http://127.0.0.1:${PORT} (and http://localhost:${PORT})`);
+  console.log(`🚀 Designify Bridge Server running strictly on http://${HOST}:${PORT}`);
   console.log(`- Claude CLI: ${claudePath ? 'LINKED (' + claudePath + ')' : 'NOT FOUND'}`);
   console.log(`- Codex CLI:  ${codexPath ? 'LINKED (' + codexPath + ')' : 'NOT FOUND'}`);
+  console.log(`- Security: Bound to localhost loopback only (${HOST}); untrusted web origins blocked.`);
 });
