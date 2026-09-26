@@ -1,0 +1,12 @@
+{
+  "name": "designify-bridge-server",
+  "version": "1.0.0",
+  "description": "Local bridge daemon connecting Designify Chrome extension to local Claude Code and Codex CLIs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

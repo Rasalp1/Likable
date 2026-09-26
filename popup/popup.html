@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Designify</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <div class="logo-icon">✨</div>
+        <div class="brand-text">
+          <h1>Designify</h1>
+          <span class="version">v1.0.0</span>
+        </div>
+      </div>
+      <div class="status-indicator" id="bridge-status-indicator" title="Local Bridge Status">
+        <span class="status-dot ping"></span>
+        <span id="bridge-status-text">Checking...</span>
+      </div>
+    </header>
+
+    <!-- Main Status Card -->
+    <div class="status-card">
+      <div class="status-row">
+        <span class="label">Local Bridge:</span>
+        <span class="value" id="val-bridge">http://127.0.0.1:3030</span>
+      </div>
+      <div class="status-row">
+        <span class="label">Claude Code CLI:</span>
+        <span class="value badge-success" id="val-claude">Checking...</span>
+      </div>
+      <div class="status-row">
+        <span class="label">Codex CLI:</span>
+        <span class="value badge-success" id="val-codex">Checking...</span>
+      </div>
+    </div>
+
+    <!-- Quick Action -->
+    <button id="btn-launch-hud" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      Activate HUD on Tab
+    </button>
+
+    <!-- Quick Tips -->
+    <div class="tips-box">
+      <h3>Quick Controls</h3>
+      <ul>
+        <li><strong>Redesign:</strong> Click presets or write custom prompts</li>
+        <li><strong>Split View:</strong> Compare original vs redesign side-by-side</li>
+        <li><strong>Peek:</strong> Hold <kbd>Space</kbd> to see original page</li>
+        <li><strong>Mirror:</strong> Clicks & typing sync to live website!</li>
+      </ul>
+    </div>
+
+    <footer class="popup-footer">
+      <span>Powered by local CLI session auth</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+/**
+ * Test script for Designify Bridge Server
+ * Tests the /api/health and /api/redesign endpoints against local Claude Code CLI
+ */
+
+async function runTest() {
+  console.log('Testing Designify Bridge Server...\n');
+
+  // 1. Health check
+  console.log('1. Checking GET /api/health...');
+  const healthRes = await fetch('http://127.0.0.1:3030/api/health');
+  const healthData = await healthRes.json();
+  console.log('Health check result:', healthData);
+
+  if (!healthData.claudeAvailable) {
+    console.error('Claude CLI not found!');
+    process.exit(1);
+  }
+
+  // 2. Sample redesign payload
+  console.log('\n2. Testing POST /api/redesign with sample DOM...');
+  const mockPayload = {
+    url: 'https://example-oldsite.com',
+    title: 'Acme Legacy Dashboard',
+    metaDescription: 'Manage your internal projects and database queries',
+    theme: 'linear-dark',
+    customPrompt: 'Create a stunning hero section and modern search bar with subtle glow',
+    engine: 'claude',
+    domTree: [
+      { mirrorId: 'd-1', tag: 'header', text: 'Acme Legacy Dashboard' },
+      { mirrorId: 'd-2', tag: 'nav', text: 'Home Projects Settings Analytics' },
+      { mirrorId: 'd-3', tag: 'h1', text: 'Welcome to Acme Internal Tools' },
+      { mirrorId: 'd-4', tag: 'p', text: 'Search across 10,000 internal documents and project reports' },
+      { mirrorId: 'd-5', tag: 'input', type: 'text', placeholder: 'Search projects, docs, or metrics...' },
+      { mirrorId: 'd-6', tag: 'button', text: 'Search Database', isInteractive: true },
+      { mirrorId: 'd-7', tag: 'button', text: 'Create New Project', isInteractive: true }
+    ]
+  };
+
+  const startTime = Date.now();
+  const redesignRes = await fetch('http://127.0.0.1:3030/api/redesign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(mockPayload)
+  });
+
+  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`\nRedesign response received in ${duration}s (status: ${redesignRes.status})`);
+
+  if (!redesignRes.ok) {
+    const errorBody = await redesignRes.text();
+    console.error('Error from server:', errorBody);
+    process.exit(1);
+  }
+
+  const result = await redesignRes.json();
+  console.log('\n✅ Redesign Generation Succeeded!');
+  console.log('Theme:', result.themeName);
+  console.log('Summary:', result.summary);
+  console.log('HTML Length:', result.html.length, 'characters');
+  console.log('CSS Length:', result.css.length, 'characters');
+
+  // Verify mirror IDs are present in the redesigned HTML
+  const hasInputMirror = result.html.includes('data-mirror-id="d-5"');
+  const hasButtonMirror = result.html.includes('data-mirror-id="d-6"');
+  console.log('Mirror ID verification:');
+  console.log('- Search Input (d-5) mirrored:', hasInputMirror ? '✅ YES' : '❌ NO');
+  console.log('- Button (d-6) mirrored:', hasButtonMirror ? '✅ YES' : '❌ NO');
+}
+
+runTest().catch((err) => {
+  console.error('Test failed:', err);
+  process.exit(1);
+});

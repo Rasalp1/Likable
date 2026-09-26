@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acme Enterprise Legacy Portal (1998-2005 Edition)</title>
+  <style>
+    /* Intentionally dated, legacy styling to show dramatic redesign contrast */
+    body {
+      font-family: "Times New Roman", Times, serif;
+      background-color: #c0c0c0;
+      color: #000080;
+      margin: 20px;
+    }
+    .header-box {
+      background-color: #000080;
+      color: #ffff00;
+      padding: 10px;
+      border: 3px ridge #ffffff;
+      text-align: center;
+    }
+    .nav-bar {
+      margin-top: 10px;
+      background: #e0e0e0;
+      padding: 6px;
+      border: 2px inset #ffffff;
+      text-align: center;
+    }
+    .nav-bar a {
+      margin: 0 10px;
+      color: #0000ff;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    .main-container {
+      margin-top: 15px;
+      background: #ffffff;
+      border: 3px double #000080;
+      padding: 20px;
+    }
+    .search-box {
+      background: #f0f0f0;
+      padding: 15px;
+      border: 1px solid #808080;
+      margin-bottom: 20px;
+    }
+    .search-box input[type="text"] {
+      padding: 4px;
+      width: 300px;
+      font-family: Courier, monospace;
+    }
+    .btn-legacy {
+      background-color: #d4d0c8;
+      border: 2px outset #ffffff;
+      padding: 4px 12px;
+      font-family: Tahoma, sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-legacy:active {
+      border: 2px inset #ffffff;
+    }
+    .grid {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .grid-row {
+      display: table-row;
+    }
+    .grid-cell {
+      display: table-cell;
+      border: 1px solid #808080;
+      padding: 10px;
+      background: #fafafa;
+    }
+    .status-panel {
+      margin-top: 20px;
+      background: #ffffcc;
+      border: 1px dashed #999900;
+      padding: 10px;
+      color: #333333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Legacy Header -->
+  <header class="header-box">
+    <h1>*** ACME GLOBAL INVENTORY & SEARCH PORTAL v2.4 ***</h1>
+    <p>Internal Use Only - Authorized Personnel Records System</p>
+  </header>
+
+  <!-- Legacy Navigation -->
+  <nav class="nav-bar">
+    <a href="#home">Main Directory</a> |
+    <a href="#records">Employee Roster</a> |
+    <a href="#inventory">Warehouse Logs</a> |
+    <a href="#reports">Financial Ledgers</a> |
+    <a href="#help">Help Desk</a>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-container">
+    <h2>System Query Console</h2>
+    <p>Please enter your search parameters below. All keystrokes and queries are tracked in real-time by the host database listener.</p>
+
+    <!-- Search Box with Live Keystroke Echo -->
+    <section class="search-box">
+      <label for="query-input"><strong>Database Keyword:</strong> </label>
+      <input type="text" id="query-input" placeholder="Type query here...">
+      <button class="btn-legacy" id="btn-search">Execute Search</button>
+      <button class="btn-legacy" id="btn-export">Generate Report</button>
+      <button class="btn-legacy" id="btn-counter">Live Clicks: <span id="counter-val">0</span></button>
+    </section>
+
+    <!-- Status Panel Proving Functionality is Active -->
+    <div class="status-panel">
+      <h3>Active System Event Monitor (Verifies underlying page JS):</h3>
+      <p id="live-echo">Typed Input Echo: <em>(none yet)</em></p>
+      <p id="live-action">Last Event Fired: <em>System initialized.</em></p>
+    </div>
+
+    <!-- Legacy Data Cards -->
+    <div class="grid">
+      <div class="grid-row">
+        <div class="grid-cell">
+          <h3>Server Node Alpha</h3>
+          <p>Status: ONLINE (99.4% Uptime)</p>
+          <p>Memory: 512 MB / 1024 MB</p>
+          <button class="btn-legacy" onclick="logAction('Pinging Node Alpha...')">Ping Node Alpha</button>
+        </div>
+        <div class="grid-cell">
+          <h3>Database Replica Beta</h3>
+          <p>Status: ACTIVE (Latency 12ms)</p>
+          <p>Transactions: 4,821 / sec</p>
+          <button class="btn-legacy" onclick="logAction('Syncing Replica Beta...')">Sync Replica Beta</button>
+        </div>
+        <div class="grid-cell">
+          <h3>Storage Cluster Gamma</h3>
+          <p>Status: HEALTHY (Capacity 42%)</p>
+          <p>Total Blocks: 18,920,401</p>
+          <button class="btn-legacy" onclick="logAction('Scanning Storage Gamma...')">Verify Cluster</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="margin-top: 20px; text-align: center; font-size: 11px; color: #555;">
+    Copyright &copy; 1998-2005 Acme Global Software Corp. Best viewed in Netscape Navigator 4.0 or Internet Explorer 5.5 at 800x600 resolution.
+  </footer>
+
+  <script>
+    // Live interactive script proving host functionality
+    let count = 0;
+    const counterBtn = document.getElementById('btn-counter');
+    const counterVal = document.getElementById('counter-val');
+    const queryInput = document.getElementById('query-input');
+    const liveEcho = document.getElementById('live-echo');
+    const liveAction = document.getElementById('live-action');
+    const btnSearch = document.getElementById('btn-search');
+    const btnExport = document.getElementById('btn-export');
+
+    function logAction(msg) {
+      liveAction.innerHTML = 'Last Event Fired: <strong>' + msg + '</strong> (' + new Date().toLocaleTimeString() + ')';
+    }
+
+    counterBtn.addEventListener('click', () => {
+      count++;
+      counterVal.textContent = count;
+      logAction('Clicked Counter Button (Total: ' + count + ')');
+    });
+
+    queryInput.addEventListener('input', (e) => {
+      liveEcho.innerHTML = 'Typed Input Echo: <strong style="color: green;">' + (e.target.value || '(none)') + '</strong>';
+    });
+
+    btnSearch.addEventListener('click', () => {
+      logAction('Search executed for query: "' + (queryInput.value || 'all') + '"');
+    });
+
+    btnExport.addEventListener('click', () => {
+      logAction('Report export compiled successfully.');
+    });
+  </script>
+</body>
+</html>
