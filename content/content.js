@@ -6,22 +6,35 @@
 
 const BRIDGE_URL = 'http://127.0.0.1:3030';
 
+function ensureStylesInjected() {
+  if (!document.getElementById('designify-hud-style')) {
+    const link = document.createElement('link');
+    link.id = 'designify-hud-style';
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL('content/hud.css');
+    (document.head || document.documentElement).appendChild(link);
+  }
+}
+
 window.DesignifyCoordinator = {
   initialized: false,
 
   init() {
-    if (this.initialized) return;
-    this.initialized = true;
-
-    console.log('[Designify] Initializing Designify suite on active tab...');
+    ensureStylesInjected();
 
     // Initialize HUD and Overlay
     if (window.DesignifyHUD) {
       window.DesignifyHUD.init();
+      window.DesignifyHUD.show();
     }
     if (window.DesignifyOverlay) {
       window.DesignifyOverlay.init();
     }
+
+    if (this.initialized) return;
+    this.initialized = true;
+
+    console.log('[Designify] Initializing Designify suite on active tab...');
   },
 
   /**

@@ -18,11 +18,23 @@ window.DesignifyHUD = {
     { id: 'cyberpunk', label: '🦾 Cyberpunk' }
   ],
 
+  show() {
+    if (this.hudContainer) {
+      this.hudContainer.style.display = 'block';
+    }
+    if (this.miniFab) {
+      this.miniFab.style.display = 'none';
+    }
+  },
+
   /**
    * Mounts the HUD into the document
    */
   init() {
-    if (this.hudContainer) return;
+    if (this.hudContainer) {
+      this.show();
+      return;
+    }
 
     // Create Main HUD Root
     this.hudContainer = document.createElement('div');

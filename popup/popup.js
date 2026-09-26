@@ -59,8 +59,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Activate HUD on active tab
   btnLaunch.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'inject_designify' }, () => {
-      window.close();
+    const alertBox = document.getElementById('action-alert');
+    if (alertBox) alertBox.style.display = 'none';
+
+    btnLaunch.disabled = true;
+    btnLaunch.textContent = 'Injecting HUD...';
+
+    chrome.runtime.sendMessage({ action: 'inject_designify' }, (response) => {
+      btnLaunch.disabled = false;
+      if (response && response.success) {
+        btnLaunch.textContent = '✓ HUD Activated!';
+        setTimeout(() => window.close(), 400);
+      } else {
+        btnLaunch.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          Activate HUD on Tab
+        `;
+        if (alertBox) {
+          alertBox.textContent = response?.error || 'Failed to inject HUD. Ensure you are on a standard webpage.';
+          alertBox.style.display = 'block';
+        }
+      }
     });
   });
 });

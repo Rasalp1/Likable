@@ -28,18 +28,47 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'inject_designify') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (!tabs || !tabs[0]) return;
-      const tabId = tabs[0].id;
-      
-      chrome.scripting.executeScript({
-        target: { tabId },
-        files: ['content/content.js']
-      }).then(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (!tabs || !tabs[0]) {
+        sendResponse({ success: false, error: 'No active tab found.' });
+        return;
+      }
+      const tab = tabs[0];
+      const tabId = tab.id;
+      const url = tab.url || '';
+
+      // Chrome blocks content scripts on internal browser URLs
+      if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('edge://') || url.startsWith('about:')) {
+        sendResponse({
+          success: false,
+          error: 'Chrome security restricts extensions on system pages (chrome://). Please switch to a regular website (e.g. Wikipedia, Reddit, or localhost) to use Designify!'
+        });
+        return;
+      }
+
+      try {
+        // 1. Inject stylesheet
+        await chrome.scripting.insertCSS({
+          target: { tabId },
+          files: ['content/hud.css']
+        });
+
+        // 2. Inject scripts in strict dependency order
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: [
+            'content/ingester.js',
+            'content/overlay.js',
+            'content/hud.js',
+            'content/content.js'
+          ]
+        });
+
         sendResponse({ success: true });
-      }).catch((err) => {
+      } catch (err) {
+        console.error('[Designify] Failed to inject scripts into tab:', err);
         sendResponse({ success: false, error: err.message });
-      });
+      }
     });
     return true;
   }
