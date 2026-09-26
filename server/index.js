@@ -299,6 +299,17 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n❌ Port ${PORT} is already in use.`);
+    console.error(`To free up port ${PORT}, run:`);
+    console.error(`  lsof -ti :${PORT} | xargs kill -9\n`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
+});
+
 server.listen(PORT, '127.0.0.1', () => {
   const claudePath = CLAUDE_BIN || resolveBinary('claude');
   const codexPath = CODEX_BIN || resolveBinary('codex');
