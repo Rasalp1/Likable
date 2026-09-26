@@ -113,9 +113,10 @@ ${JSON.stringify(domTree, null, 2)}
    - Glassmorphism, smooth gradients, subtle inner shadows, sleek borders (\`1px solid rgba(255,255,255,0.08)\`).
    - Micro-interactions on buttons, links, and cards (\`:hover\`, \`:focus\`, transform, transition).
 
-3. **Technical Output Format**:
-   - The redesign will be rendered inside an isolated Shadow DOM container.
-   - All styles must be fully encapsulated. The root wrapper should be \`<div id="designify-container">...</div>\`.
+3. **Full-Page Viewport Canvas (MANDATORY)**:
+   - You are redesigning the ENTIRE WEBPAGE, NOT a widget, popup, or floating card in the corner.
+   - The root wrapper <div id="designify-container"> MUST be a complete full-screen web application layout spanning 100% width and min-height: 100vh.
+   - NEVER use position: fixed; right: 0; or float: right; or max-width: 400px; on #designify-container. It must fill the full width of the screen.
    - Provide clean, semantic HTML and standard CSS. DO NOT use external CSS frameworks (no Tailwind runtime, no Bootstrap). Use pure Vanilla CSS with CSS custom properties.
    - You MUST respond with ONLY a valid JSON object in the following format (no commentary or markdown wrappers outside the JSON):
 

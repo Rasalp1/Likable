@@ -17,23 +17,38 @@ window.DesignifyOverlay = {
    * Initializes the Shadow DOM host element
    */
   init() {
-    if (this.hostElement) return;
+    if (this.hostElement && document.contains(this.hostElement)) return;
+
+    if (this.hostElement && !document.contains(this.hostElement)) {
+      this.hostElement.remove();
+      this.hostElement = null;
+    }
 
     this.hostElement = document.createElement('div');
     this.hostElement.id = 'designify-overlay-root';
     this.hostElement.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 2147483640;
-      overflow: hidden;
+      position: fixed !important;
+      inset: 0px !important;
+      top: 0px !important;
+      left: 0px !important;
+      right: 0px !important;
+      bottom: 0px !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      margin: 0px !important;
+      padding: 0px !important;
+      border: none !important;
+      transform: none !important;
+      filter: none !important;
+      pointer-events: none !important;
+      z-index: 2147483640 !important;
+      overflow: hidden !important;
       display: none;
     `;
 
-    document.documentElement.appendChild(this.hostElement);
+    (document.body || document.documentElement).appendChild(this.hostElement);
     this.shadowRoot = this.hostElement.attachShadow({ mode: 'open' });
 
     this.bindGlobalShortcuts();
@@ -47,11 +62,34 @@ window.DesignifyOverlay = {
     this.init();
     this.activeRedesign = { html, css, summary, themeName };
 
+    const themeBgMap = {
+      'linear-dark': '#0d0e12',
+      'apple-modern': '#fafafa',
+      'glassmorphism': '#080914',
+      'bento-grid': '#0b0f17',
+      'cyberpunk': '#05070a'
+    };
+    const currentThemeBg = themeBgMap[themeName?.toLowerCase().replace(/\s+/g, '-')] || '#0d0e12';
+
     // Build base reset and overlay structure inside shadow root
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          all: initial;
+          all: initial !important;
+          display: block !important;
+          position: fixed !important;
+          inset: 0 !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          z-index: 2147483640 !important;
+          pointer-events: none !important;
         }
 
         * {
@@ -61,18 +99,38 @@ window.DesignifyOverlay = {
         }
 
         #designify-canvas-wrapper {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          overflow-y: auto;
-          overflow-x: hidden;
-          pointer-events: auto;
-          background: transparent;
+          position: fixed !important;
+          inset: 0 !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          pointer-events: auto !important;
+          background: ${currentThemeBg} !important;
+          margin: 0 !important;
+          padding: 0 !important;
           transition: opacity 0.2s ease;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
           -webkit-font-smoothing: antialiased;
+        }
+
+        /* Force root container to span full width and min-height */
+        #designify-container {
+          width: 100% !important;
+          min-width: 100% !important;
+          min-height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-sizing: border-box !important;
+          display: block !important;
+          position: relative !important;
+          top: 0 !important;
+          left: 0 !important;
+          background: inherit;
         }
 
         /* Custom Scrollbar */
