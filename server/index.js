@@ -299,9 +299,21 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
-server.on('error', (err) => {
+server.on('error', async (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`\n❌ Port ${PORT} is already in use.`);
+    try {
+      const checkRes = await fetch(`http://127.0.0.1:${PORT}/api/health`);
+      const checkData = await checkRes.json();
+      if (checkData.service === 'designify-bridge') {
+        console.log(`\n✅ Designify Bridge Server is ALREADY running and healthy at http://127.0.0.1:${PORT}`);
+        console.log(`- Claude CLI: ${checkData.claudeAvailable ? 'LINKED (' + checkData.claudePath + ')' : 'NOT FOUND'}`);
+        console.log(`- Codex CLI:  ${checkData.codexAvailable ? 'LINKED (' + checkData.codexPath + ')' : 'NOT FOUND'}`);
+        console.log(`Chrome extension is actively connected.\n`);
+        return;
+      }
+    } catch {}
+
+    console.error(`\n❌ Port ${PORT} is in use by another application.`);
     console.error(`To free up port ${PORT}, run:`);
     console.error(`  lsof -ti :${PORT} | xargs kill -9\n`);
     process.exit(1);
@@ -310,11 +322,11 @@ server.on('error', (err) => {
   }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, '0.0.0.0', () => {
   const claudePath = CLAUDE_BIN || resolveBinary('claude');
   const codexPath = CODEX_BIN || resolveBinary('codex');
 
-  console.log(`🚀 Designify Bridge Server running at http://127.0.0.1:${PORT}`);
+  console.log(`🚀 Designify Bridge Server running at http://127.0.0.1:${PORT} (and http://localhost:${PORT})`);
   console.log(`- Claude CLI: ${claudePath ? 'LINKED (' + claudePath + ')' : 'NOT FOUND'}`);
   console.log(`- Codex CLI:  ${codexPath ? 'LINKED (' + codexPath + ')' : 'NOT FOUND'}`);
 });

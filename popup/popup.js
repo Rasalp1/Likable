@@ -2,7 +2,22 @@
  * Designify Popup Script
  */
 
-const BRIDGE_HEALTH_URL = 'http://127.0.0.1:3030/api/health';
+async function fetchBridgeHealth() {
+  const urls = [
+    'http://127.0.0.1:3030/api/health',
+    'http://localhost:3030/api/health'
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+  }
+  return null;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   const statusIndicator = document.getElementById('bridge-status-indicator');
@@ -12,33 +27,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   const valCodex = document.getElementById('val-codex');
   const btnLaunch = document.getElementById('btn-launch-hud');
 
-  // Check bridge health
-  try {
-    const res = await fetch(BRIDGE_HEALTH_URL);
-    if (!res.ok) throw new Error('Bridge server returned error');
-    const data = await res.json();
+  async function checkStatus() {
+    statusText.textContent = 'Checking...';
+    const data = await fetchBridgeHealth();
 
-    statusDot.classList.remove('error');
-    statusText.textContent = 'Connected';
+    if (data && data.status === 'ok') {
+      statusDot.classList.remove('error');
+      statusText.textContent = 'Connected (Port 3030)';
 
-    valClaude.textContent = data.claudeAvailable ? 'Ready' : 'Not Found';
-    valClaude.className = `value ${data.claudeAvailable ? 'badge-success' : 'badge-error'}`;
+      valClaude.textContent = data.claudeAvailable ? (data.claudeVersion || 'Ready') : 'Not Found';
+      valClaude.className = `value ${data.claudeAvailable ? 'badge-success' : 'badge-error'}`;
 
-    valCodex.textContent = data.codexAvailable ? 'Ready' : 'Not Found';
-    valCodex.className = `value ${data.codexAvailable ? 'badge-success' : 'badge-error'}`;
-
-  } catch (err) {
-    statusDot.classList.add('error');
-    statusText.textContent = 'Disconnected';
-    valClaude.textContent = 'Offline';
-    valClaude.className = 'value badge-error';
-    valCodex.textContent = 'Offline';
-    valCodex.className = 'value badge-error';
+      valCodex.textContent = data.codexAvailable ? (data.codexVersion || 'Ready') : 'Not Found';
+      valCodex.className = `value ${data.codexAvailable ? 'badge-success' : 'badge-error'}`;
+    } else {
+      statusDot.classList.add('error');
+      statusText.textContent = 'Server Offline';
+      valClaude.textContent = 'Bridge Not Running';
+      valClaude.className = 'value badge-error';
+      valCodex.textContent = 'Bridge Not Running';
+      valCodex.className = 'value badge-error';
+    }
   }
+
+  // Initial check
+  await checkStatus();
+
+  // Clicking indicator refreshes status
+  statusIndicator.style.cursor = 'pointer';
+  statusIndicator.addEventListener('click', () => checkStatus());
 
   // Activate HUD on active tab
   btnLaunch.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'inject_designify' }, (response) => {
+    chrome.runtime.sendMessage({ action: 'inject_designify' }, () => {
       window.close();
     });
   });
