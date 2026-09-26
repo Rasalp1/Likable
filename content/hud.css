@@ -330,3 +330,97 @@
 #designify-mini-fab:hover {
   transform: scale(1.08);
 }
+
+/* History & Cache Switcher */
+.designify-history-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+.designify-history-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.designify-history-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.designify-history-list::-webkit-scrollbar {
+  display: none;
+}
+
+.designify-history-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.designify-history-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.designify-history-chip.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+  border-color: #818cf8;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+}
+
+.designify-history-chip.original {
+  background: rgba(255, 255, 255, 0.03);
+  border-style: dashed;
+  color: #94a3b8;
+}
+
+.designify-history-chip.original.active {
+  border-style: solid;
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.designify-chip-delete {
+  margin-left: 2px;
+  font-size: 10px;
+  color: #64748b;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.designify-chip-delete:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}

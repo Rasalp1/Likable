@@ -22,6 +22,7 @@
       "matches": ["<all_urls>"],
       "js": [
         "content/ingester.js",
+        "content/cache.js",
         "content/overlay.js",
         "content/hud.js",
         "content/content.js"

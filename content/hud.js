@@ -30,10 +30,17 @@ window.DesignifyHUD = {
   /**
    * Mounts the HUD into the document
    */
-  init() {
+  async init() {
     if (this.hudContainer) {
       this.show();
       return;
+    }
+
+    if (window.DesignifyCache) {
+      await window.DesignifyCache.loadDesigns();
+      if (window.DesignifyCache.cachedList.length > 0) {
+        this.hasGenerated = true;
+      }
     }
 
     // Create Main HUD Root
@@ -55,7 +62,7 @@ window.DesignifyHUD = {
 
     this.render();
     this.bindEvents();
-    console.log('[Designify HUD] Mounted successfully.');
+    console.log('[Designify HUD] Mounted successfully with cached history.');
   },
 
   /**
@@ -67,6 +74,43 @@ window.DesignifyHUD = {
         ${p.label}
       </button>
     `).join('');
+
+    // Cached designs switcher
+    const cachedDesigns = window.DesignifyCache ? window.DesignifyCache.cachedList : [];
+    const activeDesignId = window.DesignifyCache ? window.DesignifyCache.currentActiveId : null;
+
+    let historySection = '';
+    if (cachedDesigns.length > 0) {
+      const chips = cachedDesigns.map((d, index) => {
+        const isActive = d.id === activeDesignId;
+        const number = cachedDesigns.length - index;
+        return `
+          <div class="designify-history-chip ${isActive ? 'active' : ''}" data-design-id="${d.id}" title="${d.summary || d.themeName}">
+            <span>#${number} ${d.themeName}</span>
+            <span style="font-size: 10px; opacity: 0.65;">(${d.timeFormatted || 'saved'})</span>
+            <span class="designify-chip-delete" data-delete-id="${d.id}" title="Remove this design">&times;</span>
+          </div>
+        `;
+      }).join('');
+
+      historySection = `
+        <div class="designify-history-section">
+          <div class="designify-history-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Designs (${cachedDesigns.length}):
+          </div>
+          <div class="designify-history-list">
+            <div class="designify-history-chip original ${activeDesignId === 'original' ? 'active' : ''}" data-design-id="original" title="View original website">
+              🌐 Original Site
+            </div>
+            ${chips}
+          </div>
+        </div>
+      `;
+    }
 
     this.hudContainer.innerHTML = `
       <div class="designify-hud-card">
@@ -96,6 +140,9 @@ window.DesignifyHUD = {
           </div>
         </div>
 
+        <!-- History Switcher Bar (Appears when designs are cached) -->
+        ${historySection}
+
         <!-- Theme Presets Bar -->
         <div class="designify-presets">
           ${presetButtons}
@@ -119,7 +166,7 @@ window.DesignifyHUD = {
           </button>
         </div>
 
-        <!-- Secondary Inspection & Export Bar (shows after generation) -->
+        <!-- Secondary Inspection & Export Bar (shows after generation or when designs exist) -->
         <div class="designify-hud-secondary-bar" id="designify-secondary-bar" style="display: ${this.hasGenerated ? 'flex' : 'none'};">
           <div class="designify-control-group">
             <button id="designify-split-btn" class="designify-btn-sm" title="Toggle side-by-side comparison slider">
@@ -148,8 +195,45 @@ window.DesignifyHUD = {
    * Binds click and input handlers for the HUD
    */
   bindEvents() {
-    // Preset buttons
-    this.hudContainer.addEventListener('click', (e) => {
+    this.hudContainer.addEventListener('click', async (e) => {
+      // 1. History Chip Switching
+      const deleteBtn = e.target.closest('.designify-chip-delete');
+      if (deleteBtn) {
+        e.stopPropagation();
+        const deleteId = deleteBtn.dataset.deleteId;
+        if (window.DesignifyCache) {
+          await window.DesignifyCache.deleteDesign(deleteId);
+          this.render();
+        }
+        return;
+      }
+
+      const chip = e.target.closest('.designify-history-chip');
+      if (chip) {
+        const designId = chip.dataset.designId;
+        if (designId === 'original') {
+          if (window.DesignifyCache) window.DesignifyCache.currentActiveId = 'original';
+          window.DesignifyOverlay.toggleVisibility(false);
+          this.render();
+        } else if (window.DesignifyCache) {
+          const design = window.DesignifyCache.getDesignById(designId);
+          if (design) {
+            window.DesignifyCache.currentActiveId = designId;
+            window.DesignifyOverlay.render({
+              html: design.html,
+              css: design.css,
+              summary: design.summary,
+              themeName: design.themeName
+            });
+            window.DesignifyOverlay.toggleVisibility(true);
+            this.hasGenerated = true;
+            this.render();
+          }
+        }
+        return;
+      }
+
+      // 2. Preset buttons
       const presetBtn = e.target.closest('.designify-preset-btn');
       if (presetBtn) {
         this.selectedTheme = presetBtn.dataset.theme;
@@ -157,6 +241,7 @@ window.DesignifyHUD = {
         presetBtn.classList.add('active');
       }
 
+      // 3. Engine toggle
       const engineBtn = e.target.closest('.designify-engine-btn');
       if (engineBtn) {
         this.selectedEngine = engineBtn.dataset.engine;
@@ -164,25 +249,25 @@ window.DesignifyHUD = {
         engineBtn.classList.add('active');
       }
 
-      // Minimize
+      // 4. Minimize
       if (e.target.closest('#designify-minimize-btn')) {
         this.hudContainer.style.display = 'none';
         this.miniFab.style.display = 'flex';
       }
 
-      // Generate button
+      // 5. Generate button
       if (e.target.closest('#designify-generate-btn') && !this.isGenerating) {
         this.handleGenerate();
       }
 
-      // Split slider toggle
+      // 6. Split slider toggle
       if (e.target.closest('#designify-split-btn')) {
         const btn = this.hudContainer.querySelector('#designify-split-btn');
         const isActive = btn.classList.toggle('active');
         window.DesignifyOverlay.toggleSplitMode(isActive);
       }
 
-      // Export button
+      // 7. Export button
       if (e.target.closest('#designify-export-btn')) {
         window.DesignifyOverlay.exportCode();
       }

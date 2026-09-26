@@ -58,6 +58,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           target: { tabId },
           files: [
             'content/ingester.js',
+            'content/cache.js',
             'content/overlay.js',
             'content/hud.js',
             'content/content.js'

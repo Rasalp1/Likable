@@ -110,6 +110,25 @@ window.DesignifyCoordinator = {
       summary: result.summary,
       themeName: result.themeName || theme
     });
+
+    // 6. Persist into Design Cache
+    if (window.DesignifyCache) {
+      await window.DesignifyCache.saveDesign({
+        themeKey: theme,
+        themeName: result.themeName || theme,
+        summary: result.summary,
+        customPrompt,
+        engineUsed: engine,
+        html: result.html,
+        css: result.css
+      });
+
+      // Update HUD so history chips immediately appear
+      if (window.DesignifyHUD) {
+        window.DesignifyHUD.hasGenerated = true;
+        window.DesignifyHUD.render();
+      }
+    }
   }
 };
 
