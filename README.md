@@ -16,12 +16,10 @@ All original website functionality—such as clicks, link navigations, typing in
 - **Local CLI Authentication**:
   - Leverages your existing local `claude` (Claude Code) or `codex` CLI credentials—**no manual API keys or billing configurations required**.
 - **Floating Glassmorphic HUD**:
-  - Sleek, draggable dock with 5 curated aesthetic presets:
-    - ⚡ **Linear Dark**: Sleek graphite, subtle violet borders, crisp typography.
-    - 🍏 **Apple Modern**: Clean minimalist whitespace, refined hierarchy, subtle frosted glass.
-    - 🔮 **Glassmorphism Neon**: Multi-layered translucent glass, mesh gradients, neon accents.
-    - 📦 **Bento Grid SaaS**: Modular asymmetric cards, high information density.
-    - 🦾 **Cyberpunk Tech**: Dark terminal slate with high-tech accents and monospace highlights.
+  - Sleek, draggable dock with 3 curated aesthetic presets:
+    - **Linear**: Sleek graphite, subtle violet borders, crisp typography.
+    - **Apple**: Clean minimalist whitespace, refined hierarchy, subtle frosted glass.
+    - **Lovable**: Vibrant, modern AI SaaS aesthetic with obsidian canvas, luminous accents, and high-craft pill badges.
   - Custom natural language prompt input.
   - Toggle between Claude Code CLI and Codex CLI.
 - **Interactive Inspection & Export Tools**:
@@ -57,7 +55,7 @@ The server will start on `http://127.0.0.1:3030` and automatically verify that `
 ### 3. Redesign Any Website
 1. Visit any website (e.g. Wikipedia, Reddit, Hacker News, or an internal dashboard).
 2. The Designify floating HUD will appear at the bottom center of the page (or click the Designify extension icon in the toolbar).
-3. Select an aesthetic preset (e.g. *⚡ Linear Dark*) or type a custom prompt.
+3. Select an aesthetic preset (e.g. *Linear*) or type a custom prompt.
 4. Click **Redesign Now**.
 5. Watch as the AI redesign transforms the site in real-time right before your eyes!
 6. Click buttons, type into search inputs, drag the **Split Slider**, or hold **Space** to compare!

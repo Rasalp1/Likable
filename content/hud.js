@@ -5,7 +5,9 @@
 window.DesignifyHUD = {
   hudContainer: null,
   miniFab: null,
-  selectedTheme: 'linear-dark',
+  isMiniDropdownOpen: false,
+  _toastTimeout: null,
+  selectedTheme: 'linear',
   selectedEngine: 'claude',
   isGenerating: false,
   hasGenerated: false,
@@ -17,11 +19,9 @@ window.DesignifyHUD = {
   progressInterval: null,
 
   presets: [
-    { id: 'linear-dark', label: '⚡ Linear Dark' },
-    { id: 'apple-modern', label: '🍏 Apple Modern' },
-    { id: 'glassmorphism', label: '🔮 Glassmorphism' },
-    { id: 'bento-grid', label: '📦 Bento Grid' },
-    { id: 'cyberpunk', label: '🦾 Cyberpunk' }
+    { id: 'linear', label: 'Linear' },
+    { id: 'apple', label: 'Apple' },
+    { id: 'lovable', label: 'Lovable' }
   ],
 
   show() {
@@ -30,7 +30,199 @@ window.DesignifyHUD = {
     }
     if (this.miniFab) {
       this.miniFab.style.display = 'none';
+      this.closeMiniDropdown();
     }
+  },
+
+  minimize() {
+    if (this.hudContainer) {
+      this.hudContainer.style.display = 'none';
+    }
+    if (this.miniFab) {
+      this.miniFab.style.display = 'flex';
+      this.closeMiniDropdown();
+    }
+  },
+
+  toggleMiniDropdown() {
+    if (this.isMiniDropdownOpen) {
+      this.closeMiniDropdown();
+    } else {
+      this.openMiniDropdown();
+    }
+  },
+
+  openMiniDropdown() {
+    this.isMiniDropdownOpen = true;
+    const dropdown = this.miniFab?.querySelector('#designify-mini-dropdown');
+    const fabBtn = this.miniFab?.querySelector('#designify-mini-fab-btn');
+    if (dropdown) {
+      dropdown.classList.add('open');
+    }
+    if (fabBtn) {
+      fabBtn.classList.add('active');
+    }
+  },
+
+  closeMiniDropdown() {
+    this.isMiniDropdownOpen = false;
+    const dropdown = this.miniFab?.querySelector('#designify-mini-dropdown');
+    const fabBtn = this.miniFab?.querySelector('#designify-mini-fab-btn');
+    if (dropdown) {
+      dropdown.classList.remove('open');
+    }
+    if (fabBtn) {
+      fabBtn.classList.remove('active');
+    }
+  },
+
+  showToast(message) {
+    let toast = document.getElementById('designify-hud-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'designify-hud-toast';
+      document.documentElement.appendChild(toast);
+    }
+
+    toast.innerHTML = `
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>${message}</span>
+    `;
+    toast.className = 'show';
+
+    clearTimeout(this._toastTimeout);
+    this._toastTimeout = setTimeout(() => {
+      toast.className = '';
+    }, 2200);
+  },
+
+  async handleCopyWebsite(copyBtn) {
+    if (copyBtn.dataset.copying === 'true') return;
+    copyBtn.dataset.copying = 'true';
+
+    try {
+      const { success, isRedesign } = await this.copyWebsiteCode();
+      const textEl = copyBtn.querySelector('.designify-dropdown-text');
+      const iconEl = copyBtn.querySelector('.designify-dropdown-icon');
+      const originalText = textEl ? textEl.textContent : 'Copy this website';
+
+      if (success) {
+        copyBtn.classList.add('success');
+        if (textEl) textEl.textContent = 'Copied to clipboard!';
+        if (iconEl) {
+          iconEl.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+          iconEl.setAttribute('stroke', '#34d399');
+        }
+
+        this.showToast(isRedesign ? 'Redesigned website copied! ✨' : 'Website code copied! ✨');
+
+        setTimeout(() => {
+          copyBtn.classList.remove('success');
+          if (textEl) textEl.textContent = originalText;
+          if (iconEl) {
+            iconEl.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+            iconEl.removeAttribute('stroke');
+          }
+          copyBtn.dataset.copying = 'false';
+          this.closeMiniDropdown();
+        }, 1400);
+      } else {
+        if (textEl) textEl.textContent = 'Copy failed';
+        setTimeout(() => {
+          if (textEl) textEl.textContent = originalText;
+          copyBtn.dataset.copying = 'false';
+        }, 1400);
+      }
+    } catch (err) {
+      console.error('[Designify] Failed to copy website:', err);
+      copyBtn.dataset.copying = 'false';
+    }
+  },
+
+  async copyWebsiteCode() {
+    let codeToCopy = '';
+    let isRedesign = false;
+
+    // Check if an active redesign exists and is currently rendered
+    if (
+      window.DesignifyOverlay &&
+      window.DesignifyOverlay.activeRedesign &&
+      window.DesignifyOverlay.hostElement &&
+      window.DesignifyOverlay.hostElement.style.display !== 'none'
+    ) {
+      const { html, css, themeName, summary } = window.DesignifyOverlay.activeRedesign;
+      codeToCopy = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Designify Redesign - ${themeName}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* --- Redesign Styles --- */
+    ${css}
+  </style>
+</head>
+<body>
+  <!-- Generated by Designify AI Redesign System -->
+  <!-- Theme: ${themeName} | ${summary || ''} -->
+  ${html}
+</body>
+</html>`;
+      isRedesign = true;
+    } else {
+      // Clean clone of the original page without Designify injected DOM elements
+      const clone = document.documentElement.cloneNode(true);
+      clone.querySelectorAll(
+        '#designify-hud-root, #designify-mini-container, #designify-mini-fab, #designify-overlay-root, #designify-hud-toast, #designify-hud-style, script[src*="designify"]'
+      ).forEach((el) => el.remove());
+      codeToCopy = '<!DOCTYPE html>\n' + clone.outerHTML;
+    }
+
+    let copied = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(codeToCopy);
+        copied = true;
+      }
+    } catch (e) {
+      console.warn('[Designify] navigator.clipboard failed, trying execCommand fallback:', e);
+    }
+
+    if (!copied) {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = codeToCopy;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.pointerEvents = 'none';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } catch (err) {
+        console.error('[Designify] Copy fallback failed:', err);
+      }
+    }
+
+    return { success: copied, isRedesign };
   },
 
   /**
@@ -111,14 +303,31 @@ window.DesignifyHUD = {
     this.hudContainer = document.createElement('div');
     this.hudContainer.id = 'designify-hud-root';
 
-    // Create Minimized Floating Action Button
+    // Create Minimized Floating Action Button & Dropdown Container
     this.miniFab = document.createElement('div');
-    this.miniFab.id = 'designify-mini-fab';
-    this.miniFab.title = 'Open Designify HUD';
+    this.miniFab.id = 'designify-mini-container';
+    this.miniFab.style.display = 'none';
     this.miniFab.innerHTML = `
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-      </svg>
+      <div id="designify-mini-dropdown" class="designify-mini-dropdown">
+        <button id="designify-copy-website-btn" class="designify-mini-dropdown-item" title="Copy website code to clipboard">
+          <svg class="designify-dropdown-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span class="designify-dropdown-text">Copy this website</span>
+        </button>
+        <button id="designify-open-menu-btn" class="designify-mini-dropdown-item" title="Open full redesign controls">
+          <svg class="designify-dropdown-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span class="designify-dropdown-text">Open menu</span>
+        </button>
+      </div>
+      <button id="designify-mini-fab-btn" class="designify-mini-fab-btn" title="Designify Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </button>
     `;
 
     document.documentElement.appendChild(this.hudContainer);
@@ -241,7 +450,7 @@ window.DesignifyHUD = {
             type="text" 
             id="designify-custom-prompt" 
             class="designify-prompt-input" 
-            placeholder="Custom instructions (e.g. 'Stripe aesthetic with glow shadows')..."
+            placeholder="Custom instructions (e.g. 'Handcrafted Stripe-like layout, bespoke typography')..."
             ${this.isGenerating ? 'disabled' : ''}
           />
           <button id="designify-generate-btn" class="designify-trigger-btn" ${this.isGenerating ? 'disabled' : ''}>
@@ -272,7 +481,7 @@ window.DesignifyHUD = {
           </div>
 
           <div class="designify-hint">
-            Hold <span class="designify-kbd">Space</span> to peek at original
+            ${activeDesignId === 'original' ? '<span style="color: #38bdf8;">🌐 Viewing original website</span>' : 'Hold <span class="designify-kbd">Space</span> to peek at original'}
           </div>
         </div>
       </div>
@@ -292,7 +501,25 @@ window.DesignifyHUD = {
         e.stopPropagation();
         const deleteId = deleteBtn.dataset.deleteId;
         if (window.DesignifyCache) {
+          const wasActive = window.DesignifyCache.currentActiveId === deleteId;
           await window.DesignifyCache.deleteDesign(deleteId);
+          if (wasActive) {
+            const nextId = window.DesignifyCache.currentActiveId;
+            if (nextId && nextId !== 'original') {
+              const nextDesign = window.DesignifyCache.getDesignById(nextId);
+              if (nextDesign) {
+                window.DesignifyOverlay.render({
+                  html: nextDesign.html,
+                  css: nextDesign.css,
+                  summary: nextDesign.summary,
+                  themeName: nextDesign.themeName
+                });
+                window.DesignifyOverlay.toggleVisibility(true);
+              }
+            } else {
+              window.DesignifyOverlay.toggleVisibility(false);
+            }
+          }
           this.render();
         }
         return;
@@ -341,8 +568,7 @@ window.DesignifyHUD = {
 
       // 4. Minimize
       if (e.target.closest('#designify-minimize-btn')) {
-        this.hudContainer.style.display = 'none';
-        this.miniFab.style.display = 'flex';
+        this.minimize();
       }
 
       // 5. Generate button
@@ -354,6 +580,20 @@ window.DesignifyHUD = {
       if (e.target.closest('#designify-split-btn')) {
         const btn = this.hudContainer.querySelector('#designify-split-btn');
         const isActive = btn.classList.toggle('active');
+        if (isActive && window.DesignifyCache && window.DesignifyCache.currentActiveId === 'original') {
+          const recent = window.DesignifyCache.cachedList[0];
+          if (recent) {
+            window.DesignifyCache.currentActiveId = recent.id;
+            window.DesignifyOverlay.render({
+              html: recent.html,
+              css: recent.css,
+              summary: recent.summary,
+              themeName: recent.themeName
+            });
+            window.DesignifyOverlay.toggleVisibility(true);
+            this.render();
+          }
+        }
         window.DesignifyOverlay.toggleSplitMode(isActive);
       }
 
@@ -367,6 +607,20 @@ window.DesignifyHUD = {
     this.hudContainer.addEventListener('input', (e) => {
       if (e.target.id === 'designify-opacity-slider') {
         const val = parseFloat(e.target.value) / 100;
+        if (window.DesignifyCache && window.DesignifyCache.currentActiveId === 'original') {
+          const recent = window.DesignifyCache.cachedList[0];
+          if (recent) {
+            window.DesignifyCache.currentActiveId = recent.id;
+            window.DesignifyOverlay.render({
+              html: recent.html,
+              css: recent.css,
+              summary: recent.summary,
+              themeName: recent.themeName
+            });
+            window.DesignifyOverlay.toggleVisibility(true);
+            this.render();
+          }
+        }
         window.DesignifyOverlay.setOpacity(val);
       }
     });
@@ -378,10 +632,46 @@ window.DesignifyHUD = {
       }
     });
 
-    // Mini FAB click restores HUD
-    this.miniFab.addEventListener('click', () => {
-      this.miniFab.style.display = 'none';
-      this.hudContainer.style.display = 'block';
+    // Mini FAB click toggles dropdown
+    const miniFabBtn = this.miniFab.querySelector('#designify-mini-fab-btn');
+    if (miniFabBtn) {
+      miniFabBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleMiniDropdown();
+      });
+    }
+
+    // Dropdown button: "Copy this website"
+    const copyWebsiteBtn = this.miniFab.querySelector('#designify-copy-website-btn');
+    if (copyWebsiteBtn) {
+      copyWebsiteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await this.handleCopyWebsite(copyWebsiteBtn);
+      });
+    }
+
+    // Dropdown button: "Open menu"
+    const openMenuBtn = this.miniFab.querySelector('#designify-open-menu-btn');
+    if (openMenuBtn) {
+      openMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.closeMiniDropdown();
+        this.show();
+      });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (this.isMiniDropdownOpen && this.miniFab && !this.miniFab.contains(e.target)) {
+        this.closeMiniDropdown();
+      }
+    });
+
+    // Close dropdown on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isMiniDropdownOpen) {
+        this.closeMiniDropdown();
+      }
     });
   },
 

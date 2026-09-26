@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Designify Controls</title>
+  <link rel="stylesheet" href="content/hud.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      font-family: serif;
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <h1>Original Webpage Content (Underneath)</h1>
+  <p>This is the original webpage before redesign.</p>
+  <button id="native-btn" onclick="alert('Original button clicked!')">Original Button</button>
+
+  <script src="content/ingester.js"></script>
+  <script src="content/cache.js"></script>
+  <script src="content/overlay.js"></script>
+  <script src="content/hud.js"></script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+      console.log('--- TEST START ---');
+      await window.DesignifyHUD.init();
+      window.DesignifyHUD.show();
+
+      // Render a mock redesign
+      window.DesignifyOverlay.render({
+        html: `
+          <div id="designify-container">
+            <h1 style="color: #6366f1;">Redesigned Header (Modern AI Overlay)</h1>
+            <p style="color: #94a3b8;">This is the modern redesigned page content.</p>
+            <button data-mirror-id="native-btn" style="padding: 10px 20px; background: #6366f1; color: white; border-radius: 8px;">Modern Button</button>
+          </div>
+        `,
+        css: `
+          #designify-container {
+            padding: 40px;
+            background: #0d0e12;
+            color: #ffffff;
+            min-height: 100vh;
+          }
+        `,
+        summary: "Clean dark mode",
+        themeName: "linear"
+      });
+
+      window.DesignifyHUD.hasGenerated = true;
+      window.DesignifyHUD.render();
+
+      const shadow = window.DesignifyOverlay.shadowRoot;
+      const divider = shadow.getElementById('designify-split-divider');
+      const wrapper = shadow.getElementById('designify-canvas-wrapper');
+      const splitBtn = document.querySelector('#designify-split-btn');
+      const opacitySlider = document.querySelector('#designify-opacity-slider');
+
+      console.log('Initial state:');
+      console.log('isSplitActive:', window.DesignifyOverlay.isSplitActive);
+      console.log('divider display:', divider ? window.getComputedStyle(divider).display : 'null');
+      console.log('wrapper clipPath:', wrapper ? wrapper.style.clipPath : 'null');
+      console.log('wrapper opacity:', wrapper ? wrapper.style.opacity : 'null');
+
+      // Test 1: Click Split Button
+      console.log('\n--- Action 1: Click Split Button ---');
+      splitBtn.click();
+      console.log('After split click:');
+      console.log('isSplitActive:', window.DesignifyOverlay.isSplitActive);
+      console.log('splitBtn classList:', splitBtn.className);
+      console.log('divider style display:', divider.style.display);
+      console.log('divider computed display:', window.getComputedStyle(divider).display);
+      console.log('wrapper style clipPath:', wrapper.style.clipPath);
+      console.log('wrapper computed clipPath:', window.getComputedStyle(wrapper).clipPath);
+
+      // Test 2: Opacity Slider Input
+      console.log('\n--- Action 2: Move Opacity Slider to 40% ---');
+      opacitySlider.value = 40;
+      opacitySlider.dispatchEvent(new Event('input', { bubbles: true }));
+      console.log('After opacity input:');
+      console.log('overlay currentOpacity:', window.DesignifyOverlay.currentOpacity);
+      console.log('wrapper style opacity:', wrapper.style.opacity);
+      console.log('wrapper computed opacity:', window.getComputedStyle(wrapper).opacity);
+
+      // Test 3: What if user switches design in history chip or re-renders?
+      console.log('\n--- Action 3: Re-render / History switch ---');
+      window.DesignifyOverlay.render({
+        html: '<div id="designify-container"><h1>Design 2</h1></div>',
+        css: '#designify-container { color: red; }',
+        summary: "v2",
+        themeName: "apple"
+      });
+      window.DesignifyHUD.render();
+
+      const newDivider = window.DesignifyOverlay.shadowRoot.getElementById('designify-split-divider');
+      const newWrapper = window.DesignifyOverlay.shadowRoot.getElementById('designify-canvas-wrapper');
+      const newSplitBtn = document.querySelector('#designify-split-btn');
+      const newOpacitySlider = document.querySelector('#designify-opacity-slider');
+
+      console.log('After re-render:');
+      console.log('overlay isSplitActive:', window.DesignifyOverlay.isSplitActive);
+      console.log('newSplitBtn classList:', newSplitBtn.className);
+      console.log('newDivider display:', newDivider.style.display || window.getComputedStyle(newDivider).display);
+      console.log('newWrapper clipPath:', newWrapper.style.clipPath);
+      console.log('newOpacitySlider value:', newOpacitySlider.value);
+      console.log('overlay currentOpacity:', window.DesignifyOverlay.currentOpacity);
+      console.log('newWrapper opacity:', newWrapper.style.opacity);
+
+      console.log('\n--- Action 4: Click Split button again ---');
+      newSplitBtn.click();
+      console.log('After clicking split button again:');
+      console.log('overlay isSplitActive:', window.DesignifyOverlay.isSplitActive);
+      console.log('newSplitBtn classList:', newSplitBtn.className);
+      console.log('newDivider display:', newDivider.style.display || window.getComputedStyle(newDivider).display);
+      console.log('newWrapper clipPath:', newWrapper.style.clipPath);
+
+      // Test 5: Miniature Mode & Dropdown
+      console.log('\n--- Action 5: Minimize HUD ---');
+      const minimizeBtn = document.querySelector('#designify-minimize-btn');
+      minimizeBtn.click();
+      console.log('hudContainer display after minimize:', window.DesignifyHUD.hudContainer.style.display);
+      console.log('miniFab display after minimize:', window.DesignifyHUD.miniFab.style.display);
+
+      const miniFabBtn = window.DesignifyHUD.miniFab.querySelector('#designify-mini-fab-btn');
+      const miniDropdown = window.DesignifyHUD.miniFab.querySelector('#designify-mini-dropdown');
+      const copyBtn = window.DesignifyHUD.miniFab.querySelector('#designify-copy-website-btn');
+      const openMenuBtn = window.DesignifyHUD.miniFab.querySelector('#designify-open-menu-btn');
+
+      console.log('miniFabBtn exists:', !!miniFabBtn);
+      console.log('miniDropdown open before click:', miniDropdown.classList.contains('open'));
+
+      console.log('\n--- Action 6: Click Mini FAB Stack Icon ---');
+      miniFabBtn.click();
+      console.log('miniDropdown open after click:', miniDropdown.classList.contains('open'));
+      console.log('copyBtn text:', copyBtn?.textContent.trim());
+      console.log('openMenuBtn text:', openMenuBtn?.textContent.trim());
+
+      console.log('\n--- Action 7: Click "Copy this website" ---');
+      copyBtn.click();
+
+      console.log('\n--- Action 8: Click "Open menu" ---');
+      openMenuBtn.click();
+      console.log('hudContainer display after open menu:', window.DesignifyHUD.hudContainer.style.display);
+      console.log('miniFab display after open menu:', window.DesignifyHUD.miniFab.style.display);
+      console.log('miniDropdown open after open menu:', miniDropdown.classList.contains('open'));
+
+      console.log('--- TEST END ---');
+    });
+  </script>
+</body>
+</html>

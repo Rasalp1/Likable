@@ -23,8 +23,8 @@ async function runTest() {
     url: 'https://example-oldsite.com',
     title: 'Acme Legacy Dashboard',
     metaDescription: 'Manage your internal projects and database queries',
-    theme: 'linear-dark',
-    customPrompt: 'Create a stunning hero section and modern search bar with subtle glow',
+    theme: 'linear',
+    customPrompt: 'Create a clean, human-crafted dashboard layout with high information density, refined typography, and no generic AI gradients',
     engine: 'claude',
     domTree: [
       { mirrorId: 'd-1', tag: 'header', text: 'Acme Legacy Dashboard' },

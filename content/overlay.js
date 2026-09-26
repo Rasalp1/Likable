@@ -45,8 +45,10 @@ window.DesignifyOverlay = {
       pointer-events: none !important;
       z-index: 2147483640 !important;
       overflow: hidden !important;
-      display: none;
+      display: none !important;
     `;
+    this.hostElement.setAttribute('hidden', '');
+    this.hostElement.classList.add('designify-hidden');
 
     (document.body || document.documentElement).appendChild(this.hostElement);
     this.shadowRoot = this.hostElement.attachShadow({ mode: 'open' });
@@ -62,34 +64,39 @@ window.DesignifyOverlay = {
     this.init();
     this.activeRedesign = { html, css, summary, themeName };
 
-    const themeBgMap = {
-      'linear-dark': '#0d0e12',
-      'apple-modern': '#fafafa',
-      'glassmorphism': '#080914',
-      'bento-grid': '#0b0f17',
-      'cyberpunk': '#05070a'
-    };
-    const currentThemeBg = themeBgMap[themeName?.toLowerCase().replace(/\s+/g, '-')] || '#0d0e12';
+    const rawTheme = (themeName || '').toLowerCase();
+    let currentThemeBg = '#0d0e12';
+    if (rawTheme.includes('apple')) {
+      currentThemeBg = '#f5f5f7';
+    } else if (rawTheme.includes('lovable')) {
+      currentThemeBg = '#0b0b0f';
+    } else if (rawTheme.includes('linear')) {
+      currentThemeBg = '#0d0e12';
+    }
 
     // Build base reset and overlay structure inside shadow root
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          all: initial !important;
-          display: block !important;
-          position: fixed !important;
-          inset: 0 !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          border: none !important;
-          z-index: 2147483640 !important;
-          pointer-events: none !important;
+          display: block;
+          position: fixed;
+          inset: 0;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100vw;
+          height: 100vh;
+          margin: 0;
+          padding: 0;
+          border: none;
+          z-index: 2147483640;
+          pointer-events: none;
+        }
+
+        :host([hidden]),
+        :host(.designify-hidden) {
+          display: none !important;
         }
 
         * {
@@ -194,7 +201,7 @@ window.DesignifyOverlay = {
       </div>
     `;
 
-    this.hostElement.style.display = 'block';
+    this.toggleVisibility(true);
     this.setOpacity(this.currentOpacity);
     this.setupEventMirroring();
     this.setupSplitSlider();
@@ -354,9 +361,30 @@ window.DesignifyOverlay = {
    */
   toggleVisibility(visible) {
     if (!this.hostElement) return;
-    const isShowing = this.hostElement.style.display !== 'none';
-    const nextState = visible !== undefined ? visible : !isShowing;
-    this.hostElement.style.display = nextState ? 'block' : 'none';
+    const isCurrentlyHidden = this.hostElement.style.display === 'none' ||
+                              this.hostElement.hasAttribute('hidden') ||
+                              this.hostElement.classList.contains('designify-hidden');
+    const nextState = visible !== undefined ? !!visible : isCurrentlyHidden;
+
+    if (nextState) {
+      this.hostElement.style.setProperty('display', 'block', 'important');
+      this.hostElement.removeAttribute('hidden');
+      this.hostElement.classList.remove('designify-hidden');
+    } else {
+      this.hostElement.style.setProperty('display', 'none', 'important');
+      this.hostElement.setAttribute('hidden', '');
+      this.hostElement.classList.add('designify-hidden');
+    }
+
+    const wrapper = this.shadowRoot?.getElementById('designify-canvas-wrapper');
+    if (wrapper) {
+      wrapper.style.display = nextState ? 'block' : 'none';
+    }
+
+    const divider = this.shadowRoot?.getElementById('designify-split-divider');
+    if (divider) {
+      divider.style.display = (nextState && this.isSplitActive) ? 'block' : 'none';
+    }
   },
 
   /**

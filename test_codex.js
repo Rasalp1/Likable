@@ -6,7 +6,7 @@ async function testCodex() {
   const payload = {
     url: 'https://test-dashboard.local',
     title: 'Codex Test Dashboard',
-    theme: 'bento-grid',
+    theme: 'lovable',
     engine: 'codex',
     domTree: [
       { mirrorId: 'd-1', tag: 'header', text: 'Codex Engine Test' },

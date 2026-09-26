@@ -215,7 +215,7 @@ const server = http.createServer(async (req, res) => {
           url: pageUrl,
           title,
           metaDescription,
-          theme = 'linear-dark',
+          theme = 'linear',
           customPrompt,
           domTree = [],
           screenshotBase64,
