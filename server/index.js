@@ -1,5 +1,5 @@
 import http from 'http';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -10,8 +10,51 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3030;
-const CLAUDE_BIN = '$HOME/.local/bin/claude';
-const CODEX_BIN = '$HOME/.local/bin/codex';
+
+// Resolve CLI executable path dynamically
+function resolveBinary(name) {
+  const candidates = [
+    path.join(os.homedir(), '.local/bin', name),
+    `/usr/local/bin/${name}`,
+    `/opt/homebrew/bin/${name}`,
+    path.join(os.homedir(), '.codex/bin', name)
+  ];
+
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return c;
+    }
+  }
+
+  try {
+    const stdout = execSync(`which ${name}`, {
+      env: { ...process.env, PATH: `${process.env.PATH}:${os.homedir()}/.local/bin:/usr/local/bin:/opt/homebrew/bin` },
+      encoding: 'utf8'
+    }).trim();
+    if (stdout && fs.existsSync(stdout)) {
+      return stdout;
+    }
+  } catch {}
+
+  return null;
+}
+
+function getBinaryVersion(binPath) {
+  if (!binPath) return null;
+  try {
+    const out = execSync(`"${binPath}" --version`, {
+      env: { ...process.env, PATH: `${process.env.PATH}:${os.homedir()}/.local/bin:/usr/local/bin:/opt/homebrew/bin` },
+      encoding: 'utf8',
+      timeout: 3000
+    }).trim();
+    return out.split('\n')[0];
+  } catch {
+    return 'ready';
+  }
+}
+
+const CLAUDE_BIN = resolveBinary('claude');
+const CODEX_BIN = resolveBinary('codex');
 
 // Helper to set CORS headers
 function setCorsHeaders(res) {
@@ -20,17 +63,10 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
-// Check if a binary exists and is executable
-function checkBinaryExists(binPath) {
-  try {
-    return fs.existsSync(binPath);
-  } catch {
-    return false;
-  }
-}
-
-// Extract JSON from potential markdown codeblocks or text
+// Extract JSON from potential markdown codeblocks, headers, or text
 function parseJsonSafely(rawOutput) {
+  if (!rawOutput) return null;
+
   // Try direct parse first
   try {
     return JSON.parse(rawOutput.trim());
@@ -62,19 +98,25 @@ function runCLI({ engine = 'claude', prompt, workDir }) {
     let command;
     let args;
 
+    const extraPaths = `${os.homedir()}/.local/bin:/usr/local/bin:/opt/homebrew/bin:${os.homedir()}/.codex/bin`;
+    const env = {
+      ...process.env,
+      PATH: `${extraPaths}:${process.env.PATH}`
+    };
+
     if (engine === 'codex') {
-      command = checkBinaryExists(CODEX_BIN) ? CODEX_BIN : 'codex';
-      args = ['exec', '-'];
+      command = CODEX_BIN || resolveBinary('codex') || 'codex';
+      args = ['exec', '--skip-git-repo-check', '-'];
     } else {
-      command = checkBinaryExists(CLAUDE_BIN) ? CLAUDE_BIN : 'claude';
+      command = CLAUDE_BIN || resolveBinary('claude') || 'claude';
       args = ['-p'];
     }
 
-    console.log(`[Designify Bridge] Invoking ${engine} (${command} ${args.join(' ')})...`);
+    console.log(`[Designify Bridge] Invoking ${engine} via: ${command} ${args.join(' ')}`);
 
     const child = spawn(command, args, {
       cwd: workDir || process.cwd(),
-      env: { ...process.env, PATH: `${process.env.PATH}:$HOME/.local/bin:/usr/local/bin` },
+      env,
       stdio: ['pipe', 'pipe', 'pipe']
     });
 
@@ -91,13 +133,13 @@ function runCLI({ engine = 'claude', prompt, workDir }) {
 
     child.on('error', (err) => {
       console.error(`[Designify Bridge] Failed to spawn ${command}:`, err);
-      reject(new Error(`Failed to start ${engine}: ${err.message}`));
+      reject(new Error(`Failed to start ${engine} (${command}): ${err.message}`));
     });
 
     child.on('close', (code) => {
       console.log(`[Designify Bridge] ${engine} exited with code ${code}`);
       if (code !== 0 && !stdout.trim()) {
-        reject(new Error(`${engine} error (code ${code}): ${stderr || 'Unknown error'}`));
+        reject(new Error(`${engine} error (code ${code}): ${stderr || 'Process failed'}`));
       } else {
         resolve({ stdout, stderr, code });
       }
@@ -123,17 +165,22 @@ const server = http.createServer(async (req, res) => {
 
   // Health check endpoint
   if (url.pathname === '/api/health' && req.method === 'GET') {
-    const claudeOk = checkBinaryExists(CLAUDE_BIN);
-    const codexOk = checkBinaryExists(CODEX_BIN);
+    const claudePath = CLAUDE_BIN || resolveBinary('claude');
+    const codexPath = CODEX_BIN || resolveBinary('codex');
+
+    const claudeVer = getBinaryVersion(claudePath);
+    const codexVer = getBinaryVersion(codexPath);
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       status: 'ok',
       service: 'designify-bridge',
-      claudeAvailable: claudeOk,
-      codexAvailable: codexOk,
-      claudePath: CLAUDE_BIN,
-      codexPath: CODEX_BIN,
+      claudeAvailable: !!claudePath,
+      codexAvailable: !!codexPath,
+      claudePath: claudePath || null,
+      codexPath: codexPath || null,
+      claudeVersion: claudeVer,
+      codexVersion: codexVer,
       defaultEngine: 'claude'
     }));
     return;
@@ -175,7 +222,7 @@ const server = http.createServer(async (req, res) => {
           engine = 'claude'
         } = payload;
 
-        console.log(`[Designify Bridge] Received redesign request for: ${pageUrl || title} using theme: ${theme} and engine: ${engine}`);
+        console.log(`[Designify Bridge] Received redesign request for: ${pageUrl || title} | Theme: ${theme} | Engine: ${engine}`);
 
         // Save screenshot to disk if provided
         if (screenshotBase64) {
@@ -183,7 +230,7 @@ const server = http.createServer(async (req, res) => {
           const filename = `designify_snap_${Date.now()}.png`;
           tempScreenshotPath = path.join(os.tmpdir(), filename);
           fs.writeFileSync(tempScreenshotPath, Buffer.from(cleanedBase64, 'base64'));
-          console.log(`[Designify Bridge] Screenshot saved to temp file: ${tempScreenshotPath}`);
+          console.log(`[Designify Bridge] Saved screenshot: ${tempScreenshotPath}`);
         }
 
         // Build prompt
@@ -208,7 +255,7 @@ const server = http.createServer(async (req, res) => {
         const result = parseJsonSafely(stdout);
 
         if (!result || !result.html) {
-          console.warn('[Designify Bridge] Failed to parse strict JSON from CLI output, falling back to structured recovery.');
+          console.warn('[Designify Bridge] Failed to parse strict JSON from CLI output.');
           console.log('Raw output sample:', stdout.slice(0, 500));
           
           res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -253,7 +300,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
+  const claudePath = CLAUDE_BIN || resolveBinary('claude');
+  const codexPath = CODEX_BIN || resolveBinary('codex');
+
   console.log(`🚀 Designify Bridge Server running at http://127.0.0.1:${PORT}`);
-  console.log(`- Claude CLI: ${checkBinaryExists(CLAUDE_BIN) ? 'READY (' + CLAUDE_BIN + ')' : 'NOT FOUND'}`);
-  console.log(`- Codex CLI:  ${checkBinaryExists(CODEX_BIN) ? 'READY (' + CODEX_BIN + ')' : 'NOT FOUND'}`);
+  console.log(`- Claude CLI: ${claudePath ? 'LINKED (' + claudePath + ')' : 'NOT FOUND'}`);
+  console.log(`- Codex CLI:  ${codexPath ? 'LINKED (' + codexPath + ')' : 'NOT FOUND'}`);
 });

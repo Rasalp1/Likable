@@ -1,0 +1,22 @@
+{
+  "name": "designify",
+  "version": "1.0.0",
+  "description": "Designify - AI Live Website Redesign Chrome Extension & Local CLI Bridge",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "node server/index.js",
+    "test": "node test_bridge.js"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ai",
+    "redesign",
+    "claude-code",
+    "codex",
+    "shadow-dom"
+  ],
+  "author": "Rasmus Alpsten",
+  "license": "MIT"
+}
