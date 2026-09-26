@@ -4,6 +4,20 @@
  */
 
 const BRIDGE_URL = 'http://127.0.0.1:3030';
+const BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+
+async function getBridgeToken() {
+  try {
+    const result = await chrome.storage.local.get(BRIDGE_TOKEN_KEY);
+    return typeof result[BRIDGE_TOKEN_KEY] === 'string' ? result[BRIDGE_TOKEN_KEY].trim() : '';
+  } catch {
+    return '';
+  }
+}
+
+function authHeaders(token, headers = {}) {
+  return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+}
 
 // Handle runtime messages from content script or popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -20,7 +34,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'check_bridge_health') {
-    fetch(`${BRIDGE_URL}/api/health`)
+    getBridgeToken()
+      .then((token) => fetch(`${BRIDGE_URL}/api/health`, { headers: authHeaders(token) }))
       .then((res) => res.json())
       .then((data) => sendResponse({ success: true, data }))
       .catch((err) => sendResponse({ success: false, error: err.message }));
@@ -28,14 +43,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'call_bridge_redesign') {
-    fetch(`${BRIDGE_URL}/api/redesign`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Designify-Client': 'chrome-extension'
-      },
-      body: JSON.stringify(message.payload)
-    })
+    getBridgeToken()
+      .then((token) => {
+        if (!token) throw new Error('Bridge token is not configured. Open the extension popup and save it first.');
+        return fetch(`${BRIDGE_URL}/api/redesign`, {
+          method: 'POST',
+          headers: authHeaders(token, { 'Content-Type': 'application/json' }),
+          body: JSON.stringify(message.payload)
+        });
+      })
       .then(async (res) => {
         if (!res.ok) {
           const errText = await res.text();

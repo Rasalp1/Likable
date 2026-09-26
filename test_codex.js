@@ -1,8 +1,11 @@
+import { bridgeHeaders, getBridgeToken } from './test_support.js';
+
 /**
  * Quick verification for Codex engine in Designify Bridge
  */
 async function testCodex() {
   console.log('Testing Codex Engine via Bridge Server...');
+  if (getBridgeToken().length < 32) throw new Error('No bridge token found.');
   const payload = {
     url: 'https://test-dashboard.local',
     title: 'Codex Test Dashboard',
@@ -17,7 +20,7 @@ async function testCodex() {
 
   const res = await fetch('http://127.0.0.1:3030/api/redesign', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: bridgeHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload)
   });
 
@@ -29,4 +32,7 @@ async function testCodex() {
   console.log('CSS Length:', data.css?.length);
 }
 
-testCodex().catch(console.error);
+testCodex().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

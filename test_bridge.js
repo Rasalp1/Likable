@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import { bridgeHeaders, getBridgeToken } from './test_support.js';
+
 /**
  * Test script for Designify Bridge Server
  * Tests the /api/health and /api/redesign endpoints against local Claude Code CLI
@@ -6,16 +9,17 @@
 async function runTest() {
   console.log('Testing Designify Bridge Server...\n');
 
+  if (getBridgeToken().length < 32) {
+    throw new Error('No bridge token found. Start the server first or set DESIGNIFY_BRIDGE_TOKEN.');
+  }
+
   // 1. Health check
   console.log('1. Checking GET /api/health...');
-  const healthRes = await fetch('http://127.0.0.1:3030/api/health');
+  const healthRes = await fetch('http://127.0.0.1:3030/api/health', { headers: bridgeHeaders() });
   const healthData = await healthRes.json();
   console.log('Health check result:', healthData);
 
-  if (!healthData.claudeAvailable) {
-    console.error('Claude CLI not found!');
-    process.exit(1);
-  }
+  if (!healthData.authenticated) throw new Error('Bridge token was rejected.');
 
   // 2. Sample redesign payload
   console.log('\n2. Testing POST /api/redesign with sample DOM...');
@@ -40,7 +44,7 @@ async function runTest() {
   const startTime = Date.now();
   const redesignRes = await fetch('http://127.0.0.1:3030/api/redesign', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: bridgeHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(mockPayload)
   });
 
@@ -66,6 +70,8 @@ async function runTest() {
   console.log('Mirror ID verification:');
   console.log('- Search Input (d-5) mirrored:', hasInputMirror ? '✅ YES' : '❌ NO');
   console.log('- Button (d-6) mirrored:', hasButtonMirror ? '✅ YES' : '❌ NO');
+  assert.equal(hasInputMirror, true);
+  assert.equal(hasButtonMirror, true);
 }
 
 runTest().catch((err) => {

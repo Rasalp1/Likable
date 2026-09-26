@@ -2,7 +2,14 @@
  * Designify Popup Script
  */
 
-async function fetchBridgeHealth() {
+const BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+
+async function getStoredToken() {
+  const result = await chrome.storage.local.get(BRIDGE_TOKEN_KEY);
+  return typeof result[BRIDGE_TOKEN_KEY] === 'string' ? result[BRIDGE_TOKEN_KEY].trim() : '';
+}
+
+async function fetchBridgeHealth(token) {
   const urls = [
     'http://127.0.0.1:3030/api/health',
     'http://localhost:3030/api/health'
@@ -10,7 +17,7 @@ async function fetchBridgeHealth() {
 
   for (const url of urls) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
       if (res.ok) {
         return await res.json();
       }
@@ -26,29 +33,55 @@ document.addEventListener('DOMContentLoaded', async () => {
   const valClaude = document.getElementById('val-claude');
   const valCodex = document.getElementById('val-codex');
   const btnLaunch = document.getElementById('btn-launch-hud');
+  const tokenInput = document.getElementById('bridge-token');
+  const saveTokenButton = document.getElementById('save-bridge-token');
+  const tokenStatus = document.getElementById('token-status');
+
+  tokenInput.value = await getStoredToken();
 
   async function checkStatus() {
     statusText.textContent = 'Checking...';
-    const data = await fetchBridgeHealth();
+    const data = await fetchBridgeHealth(await getStoredToken());
 
-    if (data && data.status === 'ok') {
+    if (data && data.status === 'ok' && data.authenticated) {
       statusDot.classList.remove('error');
       statusText.textContent = 'Connected (Port 3030)';
+      tokenStatus.textContent = 'Token saved locally in this extension.';
 
       valClaude.textContent = data.claudeAvailable ? (data.claudeVersion || 'Ready') : 'Not Found';
       valClaude.className = `value ${data.claudeAvailable ? 'badge-success' : 'badge-error'}`;
 
       valCodex.textContent = data.codexAvailable ? (data.codexVersion || 'Ready') : 'Not Found';
       valCodex.className = `value ${data.codexAvailable ? 'badge-success' : 'badge-error'}`;
+    } else if (data && data.requiresAuth) {
+      statusDot.classList.add('error');
+      statusText.textContent = 'Token required';
+      tokenStatus.textContent = 'Paste the token printed by the bridge server.';
+      valClaude.textContent = 'Configure token';
+      valClaude.className = 'value badge-error';
+      valCodex.textContent = 'Configure token';
+      valCodex.className = 'value badge-error';
     } else {
       statusDot.classList.add('error');
       statusText.textContent = 'Server Offline';
+      tokenStatus.textContent = 'Start node server/index.js, then save its token here.';
       valClaude.textContent = 'Bridge Not Running';
       valClaude.className = 'value badge-error';
       valCodex.textContent = 'Bridge Not Running';
       valCodex.className = 'value badge-error';
     }
   }
+
+  saveTokenButton.addEventListener('click', async () => {
+    const token = tokenInput.value.trim();
+    if (token.length < 32) {
+      tokenStatus.textContent = 'Token must be at least 32 characters.';
+      return;
+    }
+    await chrome.storage.local.set({ [BRIDGE_TOKEN_KEY]: token });
+    tokenStatus.textContent = 'Token saved locally in this extension.';
+    await checkStatus();
+  });
 
   // Initial check
   await checkStatus();

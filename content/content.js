@@ -4,8 +4,6 @@
  * and Shadow DOM projection.
  */
 
-const BRIDGE_URL = 'http://127.0.0.1:3030';
-
 function ensureStylesInjected() {
   if (!document.getElementById('designify-hud-style')) {
     const link = document.createElement('link');
@@ -98,22 +96,7 @@ window.DesignifyCoordinator = {
         }
         result = bgRes.data;
       } else {
-        // Fallback for standalone test harness outside Chrome extension context
-        const response = await fetch(`${BRIDGE_URL}/api/redesign`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Designify-Client': 'chrome-extension'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Bridge returned error ${response.status}: ${errorText}`);
-        }
-
-        result = await response.json();
+        throw new Error('Bridge requests require the Designify extension context.');
       }
     } catch (err) {
       window.DesignifyHUD?.stopSynthesisTicker();

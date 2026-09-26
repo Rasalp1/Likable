@@ -14,7 +14,7 @@
         <div class="logo-icon">✨</div>
         <div class="brand-text">
           <h1>Designify</h1>
-          <span class="version">v1.0.0</span>
+          <span class="version">v1.1.0</span>
         </div>
       </div>
       <div class="status-indicator" id="bridge-status-indicator" title="Local Bridge Status">
@@ -38,6 +38,15 @@
         <span class="value badge-success" id="val-codex">Checking...</span>
       </div>
     </div>
+
+    <section class="token-card">
+      <label for="bridge-token">Bridge token</label>
+      <div class="token-row">
+        <input id="bridge-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste token from the server terminal">
+        <button id="save-bridge-token" class="btn-secondary" type="button">Save</button>
+      </div>
+      <p id="token-status">Start the bridge, then paste the token printed in its terminal.</p>
+    </section>
 
     <!-- Quick Action -->
     <button id="btn-launch-hud" class="btn-primary">
@@ -63,7 +72,7 @@
     </div>
 
     <footer class="popup-footer">
-      <span>Powered by local CLI session auth</span>
+      <span>Page data stays local until your CLI sends it to its provider.</span>
     </footer>
   </div>
 

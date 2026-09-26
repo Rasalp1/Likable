@@ -81,6 +81,65 @@ body {
   gap: 8px;
 }
 
+.token-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.token-card label {
+  color: #c9d1d9;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.token-row {
+  display: flex;
+  gap: 6px;
+}
+
+.token-row input {
+  min-width: 0;
+  flex: 1;
+  padding: 7px 8px;
+  color: #f0f6fc;
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  outline: none;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.token-row input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 0 9px;
+  color: #f0f6fc;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+#token-status {
+  color: #8b949e;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .status-row {
   display: flex;
   justify-content: space-between;

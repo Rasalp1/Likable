@@ -58,17 +58,79 @@ window.DesignifyOverlay = {
   },
 
   /**
-   * Sanitizes AI-generated HTML before rendering inside the Shadow DOM:
-   * - Strips <script> tags
-   * - Strips inline event handlers (onerror, onload, onclick, onmouseover, etc.)
-   * - Neutralizes javascript: pseudo-protocols in href and src attributes
+   * Sanitizes AI-generated HTML before rendering inside the Shadow DOM.
+   * This is deliberately conservative: generated markup is untrusted and
+   * must not be allowed to load remote resources or create active content.
    */
   sanitizeHtml(html) {
     if (!html) return '';
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '')
-      .replace(/(href|src)\s*=\s*["']?\s*javascript:[^"'>\s]+/gi, '$1="#"');
+    const parsed = new DOMParser().parseFromString(String(html), 'text/html');
+    parsed.querySelectorAll('script, style, link, meta, base, iframe, object, embed, portal, foreignObject, use').forEach((el) => el.remove());
+
+    const safeUrl = (value, resource = false) => {
+      const trimmed = value.trim();
+      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('./') || trimmed.startsWith('../') || trimmed.startsWith('/')) {
+        return trimmed.startsWith('//') ? '' : trimmed;
+      }
+      if (/^data:image\/(png|jpeg|gif|webp);base64,/i.test(trimmed)) return resource ? trimmed : '';
+      try {
+        const resolved = new URL(trimmed, window.location.href);
+        if (resolved.origin !== window.location.origin) return '';
+        return resolved.href;
+      } catch {
+        return '';
+      }
+    };
+
+    parsed.body.querySelectorAll('*').forEach((el) => {
+      [...el.attributes].forEach((attribute) => {
+        const name = attribute.name.toLowerCase();
+        const value = attribute.value;
+
+        if (name.startsWith('on') || name === 'srcdoc' || name === 'srcset' || name === 'integrity') {
+          el.removeAttribute(attribute.name);
+          return;
+        }
+        if (name === 'data-mirror-id' && !/^d-\d+$/.test(value)) {
+          el.removeAttribute(attribute.name);
+          return;
+        }
+        if (name === 'href' || name === 'xlink:href') {
+          el.setAttribute(attribute.name, safeUrl(value) || '#');
+          return;
+        }
+        if (name === 'src' || name === 'poster') {
+          const safe = safeUrl(value, true);
+          if (safe) el.setAttribute(attribute.name, safe);
+          else el.removeAttribute(attribute.name);
+          return;
+        }
+        if (name === 'action' || name === 'formaction') {
+          el.setAttribute(attribute.name, '#');
+          return;
+        }
+        if (name === 'style') {
+          const safeStyle = value
+            .replace(/url\s*\([^)]*\)/gi, '')
+            .replace(/expression\s*\([^)]*\)/gi, '')
+            .replace(/\\/g, '')
+            .slice(0, 4_000);
+          el.setAttribute(attribute.name, safeStyle);
+        }
+      });
+    });
+
+    return parsed.body.innerHTML;
+  },
+
+  sanitizeCss(css) {
+    if (!css) return '';
+    return String(css)
+      .slice(0, 4 * 1024 * 1024)
+      .replace(/@import[^;]*;?/gi, '')
+      .replace(/url\s*\([^)]*\)/gi, 'none')
+      .replace(/expression\s*\([^)]*\)/gi, 'none')
+      .replace(/\\/g, '');
   },
 
   /**
@@ -77,7 +139,8 @@ window.DesignifyOverlay = {
   render({ html, css, summary, themeName }) {
     this.init();
     const sanitizedHtml = this.sanitizeHtml(html);
-    this.activeRedesign = { html: sanitizedHtml, css, summary, themeName };
+    const sanitizedCss = this.sanitizeCss(css);
+    this.activeRedesign = { html: sanitizedHtml, css: sanitizedCss, summary, themeName };
 
     const rawTheme = (themeName || '').toLowerCase();
     let currentThemeBg = '#0d0e12';
@@ -203,18 +266,23 @@ window.DesignifyOverlay = {
           user-select: none;
         }
 
-        /* Redesign Specific CSS */
-        ${css}
       </style>
 
       <div id="designify-canvas-wrapper">
-        ${sanitizedHtml}
       </div>
 
       <div id="designify-split-divider">
         <div id="designify-split-handle">⟷</div>
       </div>
     `;
+
+    const designStyle = document.createElement('style');
+    designStyle.id = 'designify-generated-style';
+    designStyle.textContent = sanitizedCss;
+    this.shadowRoot.appendChild(designStyle);
+
+    const wrapper = this.shadowRoot.getElementById('designify-canvas-wrapper');
+    wrapper.innerHTML = sanitizedHtml;
 
     this.toggleVisibility(true);
     this.setOpacity(this.currentOpacity);
@@ -306,6 +374,10 @@ window.DesignifyOverlay = {
         }
       }
     });
+
+    // Prevent generated forms from submitting directly. Mirrored native
+    // controls are responsible for submitting the real page form.
+    wrapper.addEventListener('submit', (e) => e.preventDefault());
   },
 
   /**
