@@ -44,9 +44,11 @@ window.DesignifyCoordinator = {
     console.log(`[Designify] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
 
     // 1. Ingest DOM and tag elements
+    window.DesignifyHUD?.updateProgress(20, 'Reading DOM elements...', 'Scanning page structure & tagging interactive elements');
     const pageData = window.DesignifyIngester.extractPageData();
 
     // 2. Capture high-res screenshot of current viewport via background service worker
+    window.DesignifyHUD?.updateProgress(40, 'Capturing viewport screenshot...', 'Extracting high-resolution visual context for AI');
     let screenshotBase64 = null;
     try {
       const response = await new Promise((resolve) => {
@@ -75,6 +77,10 @@ window.DesignifyCoordinator = {
     };
 
     // 4. Send to Local Bridge Server
+    const engineLabel = engine === 'codex' ? 'Codex' : 'Claude';
+    window.DesignifyHUD?.updateProgress(55, `Redesigning structure with ${engineLabel}...`, 'Synthesizing modern layout, color palette & typography');
+    window.DesignifyHUD?.startSynthesisTicker(engine);
+
     console.log(`[Designify] Sending request to local bridge at ${BRIDGE_URL}/api/redesign...`);
     let result = null;
 
@@ -92,16 +98,20 @@ window.DesignifyCoordinator = {
 
       result = await response.json();
     } catch (err) {
+      window.DesignifyHUD?.stopSynthesisTicker();
       console.warn('[Designify] Bridge request failed or timed out:', err);
       // Fallback: If bridge server was unreachable, throw with clear instructions
       throw new Error(`Could not communicate with Designify Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
     }
+
+    window.DesignifyHUD?.stopSynthesisTicker();
 
     if (!result || !result.html) {
       throw new Error('Designify bridge did not return valid redesign markup.');
     }
 
     console.log('[Designify] Redesign received from AI! Projecting into Shadow DOM...');
+    window.DesignifyHUD?.updateProgress(90, 'Projecting Shadow DOM...', 'Mounting isolated design and linking bi-directional events');
 
     // 5. Project the redesign inside the Shadow DOM overlay
     window.DesignifyOverlay.render({

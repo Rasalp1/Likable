@@ -10,6 +10,12 @@ window.DesignifyHUD = {
   isGenerating: false,
   hasGenerated: false,
 
+  // Live generation progress state
+  progressPercent: 0,
+  progressStage: '',
+  progressSubtext: '',
+  progressInterval: null,
+
   presets: [
     { id: 'linear-dark', label: '⚡ Linear Dark' },
     { id: 'apple-modern', label: '🍏 Apple Modern' },
@@ -24,6 +30,64 @@ window.DesignifyHUD = {
     }
     if (this.miniFab) {
       this.miniFab.style.display = 'none';
+    }
+  },
+
+  /**
+   * Updates generation progress bar & status text smoothly
+   */
+  updateProgress(percent, stage, subtext) {
+    this.progressPercent = Math.min(100, Math.max(0, Math.round(percent)));
+    if (stage) this.progressStage = stage;
+    if (subtext) this.progressSubtext = subtext;
+
+    const fillEl = this.hudContainer?.querySelector('.designify-progress-fill');
+    const statusTextEl = this.hudContainer?.querySelector('#designify-status-text');
+    const percentEl = this.hudContainer?.querySelector('#designify-status-percent');
+    const subtextEl = this.hudContainer?.querySelector('#designify-status-subtext');
+
+    if (fillEl && statusTextEl && percentEl && subtextEl) {
+      fillEl.style.width = `${this.progressPercent}%`;
+      statusTextEl.textContent = this.progressStage;
+      percentEl.textContent = `${this.progressPercent}%`;
+      subtextEl.textContent = this.progressSubtext;
+    } else if (this.isGenerating) {
+      this.render();
+    }
+  },
+
+  /**
+   * Automatically steps through AI synthesis stages while awaiting bridge response
+   */
+  startSynthesisTicker(engine) {
+    this.stopSynthesisTicker();
+    const engineName = engine === 'codex' ? 'Codex' : 'Claude';
+    const subtexts = [
+      'Synthesizing modern layouts & glassmorphism...',
+      'Crafting clean hero sections and navigation...',
+      'Restyling buttons & inputs with mirror IDs...',
+      'Generating high-contrast typography & color palette...',
+      'Refining CSS variables, margins & box-shadows...'
+    ];
+
+    let step = 0;
+    this.progressInterval = setInterval(() => {
+      if (this.progressPercent < 85) {
+        this.progressPercent += 3;
+        step = (step + 1) % subtexts.length;
+        this.updateProgress(
+          this.progressPercent,
+          `Redesigning structure with ${engineName}...`,
+          subtexts[step]
+        );
+      }
+    }, 2400);
+  },
+
+  stopSynthesisTicker() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
     }
   },
 
@@ -62,7 +126,7 @@ window.DesignifyHUD = {
 
     this.render();
     this.bindEvents();
-    console.log('[Designify HUD] Mounted successfully with cached history.');
+    console.log('[Designify HUD] Mounted successfully with progress system.');
   },
 
   /**
@@ -70,7 +134,7 @@ window.DesignifyHUD = {
    */
   render() {
     const presetButtons = this.presets.map((p) => `
-      <button class="designify-preset-btn ${p.id === this.selectedTheme ? 'active' : ''}" data-theme="${p.id}">
+      <button class="designify-preset-btn ${p.id === this.selectedTheme ? 'active' : ''}" data-theme="${p.id}" ${this.isGenerating ? 'disabled' : ''}>
         ${p.label}
       </button>
     `).join('');
@@ -80,7 +144,7 @@ window.DesignifyHUD = {
     const activeDesignId = window.DesignifyCache ? window.DesignifyCache.currentActiveId : null;
 
     let historySection = '';
-    if (cachedDesigns.length > 0) {
+    if (cachedDesigns.length > 0 && !this.isGenerating) {
       const chips = cachedDesigns.map((d, index) => {
         const isActive = d.id === activeDesignId;
         const number = cachedDesigns.length - index;
@@ -112,6 +176,26 @@ window.DesignifyHUD = {
       `;
     }
 
+    // Progress Bar Block (Shows when generating)
+    let progressBlock = '';
+    if (this.isGenerating) {
+      progressBlock = `
+        <div class="designify-progress-box">
+          <div class="designify-progress-header">
+            <div class="designify-progress-status">
+              <div class="designify-progress-spinner"></div>
+              <span id="designify-status-text">${this.progressStage || 'Reading DOM elements...'}</span>
+            </div>
+            <span class="designify-progress-percent" id="designify-status-percent">${this.progressPercent}%</span>
+          </div>
+          <div class="designify-progress-track">
+            <div class="designify-progress-fill" style="width: ${this.progressPercent}%"></div>
+          </div>
+          <div class="designify-progress-subtext" id="designify-status-subtext">${this.progressSubtext || 'Analyzing layout hierarchy...'}</div>
+        </div>
+      `;
+    }
+
     this.hudContainer.innerHTML = `
       <div class="designify-hud-card">
         <!-- Header -->
@@ -126,8 +210,8 @@ window.DesignifyHUD = {
           <div class="designify-hud-actions">
             <!-- CLI Engine Switcher -->
             <div class="designify-engine-toggle">
-              <button class="designify-engine-btn ${this.selectedEngine === 'claude' ? 'active' : ''}" data-engine="claude" title="Use local Claude Code CLI auth">Claude</button>
-              <button class="designify-engine-btn ${this.selectedEngine === 'codex' ? 'active' : ''}" data-engine="codex" title="Use local Codex CLI auth">Codex</button>
+              <button class="designify-engine-btn ${this.selectedEngine === 'claude' ? 'active' : ''}" data-engine="claude" title="Use local Claude Code CLI auth" ${this.isGenerating ? 'disabled' : ''}>Claude</button>
+              <button class="designify-engine-btn ${this.selectedEngine === 'codex' ? 'active' : ''}" data-engine="codex" title="Use local Codex CLI auth" ${this.isGenerating ? 'disabled' : ''}>Codex</button>
             </div>
 
             <!-- Minimize Button -->
@@ -143,8 +227,11 @@ window.DesignifyHUD = {
         <!-- History Switcher Bar (Appears when designs are cached) -->
         ${historySection}
 
+        <!-- Live Generation Progress Bar -->
+        ${progressBlock}
+
         <!-- Theme Presets Bar -->
-        <div class="designify-presets">
+        <div class="designify-presets" style="${this.isGenerating ? 'opacity: 0.5; pointer-events: none;' : ''}">
           ${presetButtons}
         </div>
 
@@ -155,6 +242,7 @@ window.DesignifyHUD = {
             id="designify-custom-prompt" 
             class="designify-prompt-input" 
             placeholder="Custom instructions (e.g. 'Stripe aesthetic with glow shadows')..."
+            ${this.isGenerating ? 'disabled' : ''}
           />
           <button id="designify-generate-btn" class="designify-trigger-btn" ${this.isGenerating ? 'disabled' : ''}>
             ${this.isGenerating ? '<div class="designify-spinner"></div> Synthesizing...' : `
@@ -167,7 +255,7 @@ window.DesignifyHUD = {
         </div>
 
         <!-- Secondary Inspection & Export Bar (shows after generation or when designs exist) -->
-        <div class="designify-hud-secondary-bar" id="designify-secondary-bar" style="display: ${this.hasGenerated ? 'flex' : 'none'};">
+        <div class="designify-hud-secondary-bar" id="designify-secondary-bar" style="display: ${this.hasGenerated && !this.isGenerating ? 'flex' : 'none'};">
           <div class="designify-control-group">
             <button id="designify-split-btn" class="designify-btn-sm" title="Toggle side-by-side comparison slider">
               ⟷ Split Slider
@@ -196,6 +284,8 @@ window.DesignifyHUD = {
    */
   bindEvents() {
     this.hudContainer.addEventListener('click', async (e) => {
+      if (this.isGenerating) return;
+
       // 1. History Chip Switching
       const deleteBtn = e.target.closest('.designify-chip-delete');
       if (deleteBtn) {
@@ -283,7 +373,7 @@ window.DesignifyHUD = {
 
     // Enter in prompt input triggers redesign
     this.hudContainer.addEventListener('keydown', (e) => {
-      if (e.target.id === 'designify-custom-prompt' && e.key === 'Enter') {
+      if (e.target.id === 'designify-custom-prompt' && e.key === 'Enter' && !this.isGenerating) {
         this.handleGenerate();
       }
     });
@@ -303,6 +393,7 @@ window.DesignifyHUD = {
     const customPrompt = promptInput ? promptInput.value.trim() : '';
 
     this.isGenerating = true;
+    this.updateProgress(10, 'Reading DOM elements...', 'Scanning active page and tagging interactive nodes');
     this.render();
 
     try {
@@ -312,10 +403,13 @@ window.DesignifyHUD = {
         customPrompt
       });
 
+      this.updateProgress(100, 'Redesign complete! ✨', 'Applying final polish and event listeners');
+      await new Promise((r) => setTimeout(r, 600));
       this.hasGenerated = true;
     } catch (err) {
       alert(`Redesign Error: ${err.message}`);
     } finally {
+      this.stopSynthesisTicker();
       this.isGenerating = false;
       this.render();
     }

@@ -307,6 +307,86 @@
   to { transform: rotate(360deg); }
 }
 
+/* Live Generation Progress Bar */
+.designify-progress-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: designify-fadeIn 0.2s ease-out;
+}
+
+@keyframes designify-fadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.designify-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.designify-progress-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.designify-progress-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-top-color: #818cf8;
+  border-radius: 50%;
+  animation: designify-spin 0.7s linear infinite;
+}
+
+.designify-progress-percent {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.designify-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.designify-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #38bdf8);
+  background-size: 200% 100%;
+  animation: designify-gradient-move 2s linear infinite;
+  border-radius: 3px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+}
+
+@keyframes designify-gradient-move {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.designify-progress-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Collapsed Mini Fab Button */
 #designify-mini-fab {
   position: fixed;
