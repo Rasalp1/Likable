@@ -1,26 +1,23 @@
-# ✨ Likeable - AI Live Website Redesign
+# Likeable - Loveable for live websites
 
 <p align="center">
   <img src="icons/icon128.png" alt="Likeable Logo" width="80" height="80" />
 </p>
 
 <p align="center">
-  <strong>Transform any live website into a stunning, modern web experience using local Claude or Codex CLI with real-time interactive event mirroring.</strong>
+  <strong>Redesign any live website, using local Claude or Codex CLI with real-time interactive event mirroring. Copy the style of a website you like, and apply it to any other website.</strong>
 </p>
 
 <p align="center">
-  <a href="#-setup--installation-guide"><img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="Manifest V3" /></a>
+  <a href="#setup--installation-guide"><img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="Manifest V3" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/version-1.1.0-blue?style=flat-square" alt="Version 1.1.0" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT" /></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node >= 20" /></a>
-  <img src="https://img.shields.io/badge/Architecture-Local--First%20CLI%20Bridge-6366f1?style=flat-square" alt="Local-First Bridge" />
-  <img src="https://img.shields.io/badge/Engines-Claude%20Code%20%7C%20Codex-orange?style=flat-square" alt="Claude Code & Codex" />
-  <img src="https://img.shields.io/badge/API%20Keys-Zero%20Cloud%20Keys%20Required-blueviolet?style=flat-square" alt="No API Keys Required" />
 </p>
 
 ---
 
-## 📖 What is Likeable?
+## What is Likeable?
 
 Have you ever browsed an indispensable web application or reference site that looks like it was built two decades ago? **Likeable** is an intelligent Chrome extension (Manifest V3) that redesigns any live website on the fly into a state-of-the-art, high-craft web experience.
 
@@ -31,7 +28,7 @@ Unlike static screenshot restylers or mockup generators, **Likeable preserves we
 ```
 ┌─────────────────┐       ┌──────────────────────┐       ┌───────────────────────┐
 │  Host Web Page  │ ───▶  │  DOM & Screenshot    │ ───▶  │  Local Bridge Server  │
-│  (e.g. Reddit)  │       │  Snapshot Ingestion  │       │  (127.0.0.1:3030)     │
+│                 │       │  Snapshot Ingestion  │       │  (127.0.0.1:3030)     │
 └────────┬────────┘       └──────────────────────┘       └───────────┬───────────┘
          │                                                           │
          │  Bi-directional Event Mirroring                           ▼
@@ -56,17 +53,17 @@ Unlike static screenshot restylers or mockup generators, **Likeable preserves we
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-- 🛡️ **Isolated Shadow DOM**: Complete style insulation ensures host website CSS never breaks the redesign, and redesign CSS never bleeds into the host.
-- ⚡ **Bi-directional Event Mirroring**: Seamlessly browse, search, and navigate through the redesign while the underlying website executes real logic.
-- 🔑 **Local-First & Private**: Leverages your existing local `claude` or `codex` CLI login. No cloud API proxy, no telemetry.
-- 🎨 **Bespoke Design Presets**:
+- **Isolated Shadow DOM**: Complete style insulation ensures host website CSS never breaks the redesign, and redesign CSS never bleeds into the host.
+- **Bi-directional Event Mirroring**: Seamlessly browse, search, and navigate through the redesign while the underlying website executes real logic.
+- **Local-First & Private**: Leverages your existing local `claude` or `codex` CLI login. No cloud API proxy, no telemetry.
+- **Bespoke Design Presets**:
   - **Linear**: Sleek graphite atmosphere, bento-grid layouts, hairline borders, crisp Inter typography.
   - **Apple**: Clean minimalist whitespace, signature Apple Blue pill buttons, frosted glass navigation, SF Pro typography.
   - **Lovable**: High-craft dark canvas, luminous accents, refined spacing, and subtle pill badges.
-- 🧬 **"Copy Page & Style" Preset Extraction**: Browse any site you love (e.g. Stripe, Airbnb), click *Copy page & style*, and Likeable extracts its design DNA (color palette, radii, typography, spacing) as a brand new reusable preset!
-- 🪟 **Interactive Inspection Tools**:
+- **"Copy Page & Style" Preset Extraction**: Browse any site you love, click *Copy page & style*, and Likeable extracts its design DNA (color palette, radii, typography, spacing) as a brand new reusable preset!
+- **Interactive Inspection Tools**:
   - **Before/After Split Slider**: Drag a vertical divider to inspect the original site vs redesign side-by-side.
   - **Quick Peek (`Spacebar`)**: Hold `Space` (when not focused on an input) to instantly peek at the original website.
   - **Opacity Slider**: Smoothly adjust overlay opacity from 0% to 100%.
@@ -74,7 +71,7 @@ Unlike static screenshot restylers or mockup generators, **Likeable preserves we
 
 ---
 
-## 🛠️ Setup & Installation Guide
+## Setup & Installation Guide
 
 Follow these step-by-step instructions to get Likeable running on your machine in minutes.
 
@@ -137,9 +134,9 @@ When started, the server generates a private authentication token saved to `.bri
 Pinning the extension ensures 1-click access whenever you are browsing:
 
 1. Look at the top-right corner of Chrome, directly next to your profile picture and the address bar.
-2. Click the **Extensions puzzle piece icon** (`🧩`).
+2. Click the **Extensions puzzle piece icon**.
 3. In the dropdown list that appears, find **Likeable - AI Live Website Redesign**.
-4. Click the gray **Pin icon** (`📌`) next to Likeable.
+4. Click the gray **Pin icon** next to Likeable.
 5. The pin icon turns blue, and the **Likeable icon** now appears permanently in your Chrome toolbar!
 
 ---
@@ -156,7 +153,7 @@ Pinning the extension ensures 1-click access whenever you are browsing:
 
 ### Step 5: Redesign Any Website
 
-1. Navigate to any website you want to redesign (e.g. [Hacker News](https://news.ycombinator.com), [Wikipedia](https://wikipedia.org), [Old Reddit](https://old.reddit.com), or your own development site).
+1. Navigate to any website you want to redesign.
 2. Look at the bottom-right corner of the web page: you will see the floating **Likeable launcher button**.
 3. Click the launcher button to expand the glassmorphic in-page HUD.
 4. Select a style preset (**Linear**, **Apple**, or **Lovable**), or type your own instructions into the **Your direction** box (e.g., *"Dark bento-grid with neon cyan accents and soft pill buttons"*).
@@ -172,7 +169,7 @@ Pinning the extension ensures 1-click access whenever you are browsing:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 likeable/
@@ -204,7 +201,7 @@ likeable/
 
 ---
 
-## 🔒 Privacy and Security
+## Privacy and Security
 
 Likeable is intentionally **local-first**:
 
@@ -217,7 +214,7 @@ For detailed security guidelines and disclosure policies, see [SECURITY.md](SECU
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Likeable includes a suite of automated unit and integration tests:
 
@@ -234,6 +231,6 @@ npm run test:codex
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).

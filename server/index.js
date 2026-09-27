@@ -200,15 +200,20 @@ function sendUnauthorized(res) {
   });
 }
 
-function readRequestBody(req, maxBytes = MAX_BODY_BYTES) {
+function readRequestBody(req, maxBytes = MAX_BODY_BYTES, timeoutMs = 30_000) {
   return new Promise((resolve, reject) => {
     let body = '';
     let size = 0;
     let finished = false;
 
+    const timeout = setTimeout(() => {
+      fail(httpError(408, 'Request body upload timed out.'));
+    }, timeoutMs);
+
     const fail = (error) => {
       if (finished) return;
       finished = true;
+      clearTimeout(timeout);
       req.resume();
       reject(error);
     };
@@ -225,7 +230,13 @@ function readRequestBody(req, maxBytes = MAX_BODY_BYTES) {
     req.on('end', () => {
       if (!finished) {
         finished = true;
+        clearTimeout(timeout);
         resolve(body);
+      }
+    });
+    req.on('close', () => {
+      if (!finished && !req.complete) {
+        fail(httpError(400, 'Request connection closed prematurely.'));
       }
     });
     req.on('aborted', () => fail(httpError(400, 'Request was aborted.')));
@@ -298,8 +309,12 @@ export function parseJsonSafely(rawOutput) {
   return null;
 }
 
-export function runCLI({ engine = 'claude', prompt, workDir, timeoutMs = DEFAULT_CLI_TIMEOUT_MS } = {}) {
+export function runCLI({ engine = 'claude', prompt, workDir, timeoutMs = DEFAULT_CLI_TIMEOUT_MS, signal } = {}) {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(httpError(499, 'Request aborted by client.'));
+      return;
+    }
     const claudeBin = resolveBinary('claude');
     const codexBin = resolveBinary('codex');
     const command = engine === 'codex' ? (codexBin || 'codex') : (claudeBin || 'claude');
@@ -323,8 +338,18 @@ export function runCLI({ engine = 'claude', prompt, workDir, timeoutMs = DEFAULT
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      signal?.removeEventListener('abort', onAbort);
       callback(value);
     };
+
+    const onAbort = () => {
+      try { child.kill('SIGTERM'); } catch {}
+      setTimeout(() => {
+        try { child.kill('SIGKILL'); } catch {}
+      }, 1_000).unref();
+      finish(reject, httpError(499, 'Request aborted by client.'));
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
 
     const appendOutput = (target, chunk) => {
       const next = target + chunk.toString();
@@ -432,13 +457,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       return;
     }
 
-    if (activeRequests >= maxConcurrent) {
-      sendJson(res, 429, { error: 'Another redesign is already running. Try again shortly.' }, { 'Retry-After': '5' });
-      return;
-    }
-
-    activeRequests += 1;
-    let tempScreenshotPath = null;
+    let payload;
     try {
       const body = await readRequestBody(req);
       let rawPayload;
@@ -447,8 +466,29 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       } catch {
         throw httpError(400, 'Request body must contain valid JSON.');
       }
-      const payload = validatePayload(rawPayload);
+      payload = validatePayload(rawPayload);
+    } catch (error) {
+      const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 400;
+      sendJson(res, statusCode, { error: error.message || 'Invalid redesign request.' });
+      return;
+    }
 
+    if (activeRequests >= maxConcurrent) {
+      sendJson(res, 429, { error: 'Another redesign is already running. Try again shortly.' }, { 'Retry-After': '5' });
+      return;
+    }
+
+    activeRequests += 1;
+    let tempScreenshotPath = null;
+    const abortController = new AbortController();
+    const onClientClose = () => {
+      if (!res.writableEnded) {
+        abortController.abort();
+      }
+    };
+    if (typeof res.on === 'function') res.on('close', onClientClose);
+
+    try {
       if (payload.screenshot) {
         tempScreenshotPath = path.join(os.tmpdir(), `likeable_snap_${crypto.randomUUID()}.bin`);
         fs.writeFileSync(tempScreenshotPath, payload.screenshot, { mode: 0o600, flag: 'wx' });
@@ -468,7 +508,8 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       const { stdout } = await runCliImpl({
         engine: payload.engine,
         prompt,
-        workDir: os.tmpdir()
+        workDir: os.tmpdir(),
+        signal: abortController.signal
       });
       const result = parseJsonSafely(stdout);
       if (!isPlainObject(result) || typeof result.html !== 'string' || !result.html.trim()) {
@@ -490,9 +531,12 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
     } catch (error) {
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
       if (statusCode >= 500) console.error('[Likeable Bridge] Request failed:', error.message);
-      sendJson(res, statusCode, { error: statusCode >= 500 ? 'Redesign request failed.' : error.message });
+      if (!res.writableEnded) {
+        sendJson(res, statusCode, { error: statusCode >= 500 ? 'Redesign request failed.' : error.message });
+      }
     } finally {
-      activeRequests -= 1;
+      activeRequests = Math.max(0, activeRequests - 1);
+      if (typeof res.off === 'function') res.off('close', onClientClose);
       if (tempScreenshotPath) {
         try { fs.unlinkSync(tempScreenshotPath); } catch {}
       }

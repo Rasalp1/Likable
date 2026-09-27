@@ -41,8 +41,20 @@ async function runTest() {
     ]
   };
 
+  async function fetchWithRetry(url, options, maxRetries = 15, delayMs = 3000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const res = await fetch(url, options);
+      if (res.status === 429 && attempt < maxRetries) {
+        console.log(`Bridge busy (429). Retrying in ${delayMs / 1000}s (attempt ${attempt}/${maxRetries})...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+        continue;
+      }
+      return res;
+    }
+  }
+
   const startTime = Date.now();
-  const redesignRes = await fetch('http://127.0.0.1:3030/api/redesign', {
+  const redesignRes = await fetchWithRetry('http://127.0.0.1:3030/api/redesign', {
     method: 'POST',
     headers: bridgeHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(mockPayload)

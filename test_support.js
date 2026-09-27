@@ -18,3 +18,19 @@ export function bridgeHeaders(extra = {}) {
   const token = getBridgeToken();
   return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
 }
+
+if (process.env.NODE_TEST_CONTEXT) {
+  const { default: test } = await import('node:test');
+  const { default: assert } = await import('node:assert/strict');
+
+  test('test_support provides bridge token helper and authorization headers', () => {
+    const token = getBridgeToken();
+    assert.equal(typeof token, 'string');
+    const headers = bridgeHeaders({ 'Content-Type': 'application/json' });
+    assert.equal(headers['Content-Type'], 'application/json');
+    if (token) {
+      assert.equal(headers.Authorization, `Bearer ${token}`);
+    }
+  });
+}
+

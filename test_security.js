@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import test from 'node:test';
 import {
@@ -31,12 +32,14 @@ function dispatch(server, { method = 'GET', url = '/', headers = {}, body = '' }
   const response = {
     headers: {},
     statusCode: 200,
+    writableEnded: false,
     setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
     writeHead(statusCode, headersToSet = {}) {
       this.statusCode = statusCode;
       Object.entries(headersToSet).forEach(([name, value]) => this.setHeader(name, value));
     },
     end(payload = '') {
+      this.writableEnded = true;
       resolveResponse({ status: this.statusCode, headers: this.headers, body: String(payload) });
     }
   };
@@ -164,3 +167,105 @@ test('JSON parsing accepts strict JSON and fenced model output only', () => {
   assert.deepEqual(parseJsonSafely('```json\n{"ok":true}\n```'), { ok: true });
   assert.equal(parseJsonSafely('not json'), null);
 });
+
+test('bridge enforces max concurrent redesigns and releases slot upon completion', async () => {
+  let blockCli = true;
+  let releaseCli;
+  let cliStarted;
+  const cliStartedPromise = new Promise((resolve) => { cliStarted = resolve; });
+
+  const server = createServer({
+    token: TOKEN,
+    maxConcurrent: 1,
+    runCliImpl: () => new Promise((resolve) => {
+      if (!blockCli) {
+        resolve({ stdout: JSON.stringify(generatedResponse) });
+        return;
+      }
+      cliStarted();
+      releaseCli = () => resolve({ stdout: JSON.stringify(generatedResponse) });
+    })
+  });
+  const auth = { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' };
+
+  const req1Promise = dispatch(server, {
+    method: 'POST',
+    url: '/api/redesign',
+    headers: auth,
+    body: JSON.stringify({ engine: 'claude', domTree: [] })
+  });
+
+  await cliStartedPromise;
+
+  const req2 = await dispatch(server, {
+    method: 'POST',
+    url: '/api/redesign',
+    headers: auth,
+    body: JSON.stringify({ engine: 'claude', domTree: [] })
+  });
+  assert.equal(req2.status, 429);
+  assert.equal(req2.json.error, 'Another redesign is already running. Try again shortly.');
+
+  blockCli = false;
+  releaseCli();
+  const req1 = await req1Promise;
+  assert.equal(req1.status, 200);
+
+  const req3 = await dispatch(server, {
+    method: 'POST',
+    url: '/api/redesign',
+    headers: auth,
+    body: JSON.stringify({ engine: 'claude', domTree: [] })
+  });
+  assert.equal(req3.status, 200);
+});
+
+test('bridge passes abort signal and frees slot if client aborts', async () => {
+  let receivedSignal;
+  let cliStarted;
+  const cliStartedPromise = new Promise((resolve) => { cliStarted = resolve; });
+  let cliFinished;
+  const cliFinishedPromise = new Promise((resolve) => { cliFinished = resolve; });
+
+  const server = createServer({
+    token: TOKEN,
+    maxConcurrent: 1,
+    runCliImpl: ({ signal }) => new Promise((resolve, reject) => {
+      receivedSignal = signal;
+      cliStarted();
+      signal.addEventListener('abort', () => {
+        cliFinished();
+        reject(new Error('aborted'));
+      });
+    })
+  });
+  const auth = { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' };
+
+  const request = new PassThrough();
+  request.method = 'POST';
+  request.url = '/api/redesign';
+  request.headers = auth;
+
+  const response = new EventEmitter();
+  response.headers = {};
+  response.statusCode = 200;
+  response.writableEnded = false;
+  response.setHeader = function(name, value) { this.headers[name.toLowerCase()] = value; };
+  response.writeHead = function(statusCode, headersToSet = {}) {
+    this.statusCode = statusCode;
+    Object.entries(headersToSet).forEach(([name, value]) => this.setHeader(name, value));
+  };
+  response.end = function() { this.writableEnded = true; };
+
+  server.emit('request', request, response);
+  request.end(JSON.stringify({ engine: 'claude', domTree: [] }));
+
+  await cliStartedPromise;
+  assert.ok(receivedSignal);
+  assert.equal(receivedSignal.aborted, false);
+
+  response.emit('close');
+  await cliFinishedPromise;
+  assert.equal(receivedSignal.aborted, true);
+});
+
