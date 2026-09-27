@@ -89,6 +89,81 @@ test('payload validation enforces supported engines and bounded input', () => {
     () => validatePayload({ customPreset: { name: 'x'.repeat(129) } }),
     /customPreset.name exceeds/
   );
+
+  // Model preference validation
+  const withModel = validatePayload({ engine: 'claude', model: 'sonnet' });
+  assert.equal(withModel.model, 'sonnet');
+  const withoutModel = validatePayload({ engine: 'claude' });
+  assert.equal(withoutModel.model, null);
+  const withComplexModel = validatePayload({ engine: 'codex', model: 'claude-3-7-sonnet-20250219' });
+  assert.equal(withComplexModel.model, 'claude-3-7-sonnet-20250219');
+
+  assert.throws(
+    () => validatePayload({ engine: 'claude', model: 12345 }),
+    /model must be a string/
+  );
+  assert.throws(
+    () => validatePayload({ engine: 'claude', model: 'x'.repeat(129) }),
+    /model exceeds/
+  );
+  assert.throws(
+    () => validatePayload({ engine: 'claude', model: '--danger-flag' }),
+    /model contains invalid characters/
+  );
+  assert.throws(
+    () => validatePayload({ engine: 'claude', model: 'model; rm -rf /' }),
+    /model contains invalid characters/
+  );
+
+  // Effort preference validation
+  const withEffort = validatePayload({ engine: 'claude', effort: 'high' });
+  assert.equal(withEffort.effort, 'high');
+  const withoutEffort = validatePayload({ engine: 'claude' });
+  assert.equal(withoutEffort.effort, undefined);
+  assert.throws(
+    () => validatePayload({ engine: 'claude', effort: 12345 }),
+    /effort must be a string/
+  );
+  assert.throws(
+    () => validatePayload({ engine: 'claude', effort: 'x'.repeat(33) }),
+    /effort exceeds/
+  );
+  assert.throws(
+    () => validatePayload({ engine: 'claude', effort: 'effort; rm -rf /' }),
+    /effort contains invalid characters/
+  );
+});
+
+test('bridge forwards model and effort preference to CLI implementation and includes it in response', async () => {
+  let capturedModel = null;
+  let capturedEngine = null;
+  let capturedEffort = null;
+  const server = createServer({
+    token: TOKEN,
+    runCliImpl: async ({ engine, model, effort }) => {
+      capturedEngine = engine;
+      capturedModel = model;
+      capturedEffort = effort;
+      return { stdout: JSON.stringify(generatedResponse) };
+    }
+  });
+  const res = await dispatch(server, {
+    method: 'POST',
+    url: '/api/redesign',
+    headers: { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      engine: 'codex',
+      model: 'gpt-6-luna',
+      effort: 'xhigh',
+      domTree: [{ mirrorId: 'd-1', tag: 'button' }]
+    })
+  });
+  assert.equal(res.status, 200);
+  assert.equal(capturedEngine, 'codex');
+  assert.equal(capturedModel, 'gpt-6-luna');
+  assert.equal(capturedEffort, 'xhigh');
+  assert.equal(res.json.modelUsed, 'gpt-6-luna');
+  assert.equal(res.json.effortUsed, 'xhigh');
 });
 
 test('token files are generated securely and environment tokens are validated', () => {

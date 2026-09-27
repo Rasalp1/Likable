@@ -18,7 +18,7 @@ window.LikableIngester = window.LikeableIngester = window.DesignifyIngester =
       'h1, h2, h3, h4, h5, h6, ' +
       'a, button, input, textarea, select, form, ' +
       '[role="button"], [role="search"], [role="navigation"], ' +
-      'img, figure, .card, .container'
+      'img, video, picture, figure, figcaption, svg, .card, .container'
     );
 
     elementsToTag.forEach((el) => {
@@ -97,8 +97,68 @@ window.LikableIngester = window.LikeableIngester = window.DesignifyIngester =
         }
       }
       if (tag === 'img') {
-        nodeData.src = el.getAttribute('src') || '';
-        nodeData.alt = el.getAttribute('alt') || '';
+        let src = el.currentSrc || el.src || el.getAttribute('src') ||
+                  el.getAttribute('data-src') || el.getAttribute('data-lazy-src') ||
+                  el.getAttribute('data-original') || '';
+        try {
+          if (src && !src.startsWith('data:')) {
+            src = new URL(src, window.location.href).href;
+          }
+        } catch {}
+        nodeData.src = src;
+        nodeData.alt = el.getAttribute('alt') || el.getAttribute('title') || '';
+        const srcset = el.getAttribute('srcset') || el.getAttribute('data-srcset');
+        if (srcset) nodeData.srcset = srcset;
+        if (rect.width && rect.height) {
+          nodeData.width = Math.round(rect.width);
+          nodeData.height = Math.round(rect.height);
+        }
+      }
+      if (tag === 'video') {
+        let src = el.currentSrc || el.src || el.getAttribute('src') || '';
+        if (!src) {
+          const sourceEl = el.querySelector('source[src]');
+          if (sourceEl) src = sourceEl.getAttribute('src') || sourceEl.src || '';
+        }
+        try {
+          if (src && !src.startsWith('data:')) {
+            src = new URL(src, window.location.href).href;
+          }
+        } catch {}
+        let poster = el.poster || el.getAttribute('poster') || '';
+        try {
+          if (poster && !poster.startsWith('data:')) {
+            poster = new URL(poster, window.location.href).href;
+          }
+        } catch {}
+
+        nodeData.src = src;
+        nodeData.poster = poster;
+        nodeData.autoplay = el.hasAttribute('autoplay');
+        nodeData.loop = el.hasAttribute('loop');
+        nodeData.muted = el.hasAttribute('muted') || !!el.muted;
+        nodeData.controls = el.hasAttribute('controls');
+        if (rect.width && rect.height) {
+          nodeData.width = Math.round(rect.width);
+          nodeData.height = Math.round(rect.height);
+        }
+      }
+      if (tag === 'svg') {
+        nodeData.ariaLabel = el.getAttribute('aria-label') || el.getAttribute('title') || '';
+        if (rect.width && rect.height) {
+          nodeData.width = Math.round(rect.width);
+          nodeData.height = Math.round(rect.height);
+        }
+      }
+      if (style.backgroundImage && style.backgroundImage !== 'none' && !style.backgroundImage.includes('gradient')) {
+        const bgMatch = style.backgroundImage.match(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/i);
+        if (bgMatch && bgMatch[2] && !bgMatch[2].startsWith('data:image/svg+xml')) {
+          let bgUrl = bgMatch[2];
+          try {
+            bgUrl = new URL(bgUrl, window.location.href).href;
+          } catch {}
+          nodeData.backgroundImage = bgUrl;
+        }
       }
       if (tag === 'button' || el.getAttribute('role') === 'button') {
         nodeData.isInteractive = true;
@@ -113,14 +173,17 @@ window.LikableIngester = window.LikeableIngester = window.DesignifyIngester =
       domTree.push(nodeData);
     });
 
-    // Limit domTree size to avoid token overflow (max 200 high-priority nodes)
+    // Limit domTree size to avoid token overflow with media given high priority
+    const getNodeScore = (node) => {
+      if (node.isInteractive || node.tag === 'input' || node.tag === 'button') return 10;
+      if (node.tag === 'video' || (node.tag === 'img' && node.src)) return 8;
+      if (node.tag.startsWith('h')) return 6;
+      if (node.tag === 'nav' || node.tag === 'header') return 5;
+      return 1;
+    };
+
     const prioritizedTree = domTree
-      .sort((a, b) => {
-        // Prioritize interactive inputs and buttons, then headers and nav
-        const scoreA = (a.isInteractive || a.tag === 'input' || a.tag === 'button') ? 10 : (a.tag.startsWith('h') ? 5 : 1);
-        const scoreB = (b.isInteractive || b.tag === 'input' || b.tag === 'button') ? 10 : (b.tag.startsWith('h') ? 5 : 1);
-        return scoreB - scoreA;
-      })
+      .sort((a, b) => getNodeScore(b) - getNodeScore(a))
       .slice(0, 200);
 
     return {

@@ -60,8 +60,8 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
 
   /**
    * Sanitizes AI-generated HTML before rendering inside the Shadow DOM.
-   * This is deliberately conservative: generated markup is untrusted and
-   * must not be allowed to load remote resources or create active content.
+   * Strips active code (scripts, unsafe handlers, iframes) while safely permitting
+   * valid cross-origin image/video media, responsive srcsets, and CSS background assets.
    */
   sanitizeHtml(html) {
     if (!html) return '';
@@ -69,18 +69,57 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
     parsed.querySelectorAll('script, style, link, meta, base, iframe, object, embed, portal, foreignObject, use').forEach((el) => el.remove());
 
     const safeUrl = (value, resource = false) => {
+      if (!value || typeof value !== 'string') return '';
       const trimmed = value.trim();
-      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('./') || trimmed.startsWith('../') || trimmed.startsWith('/')) {
-        return trimmed.startsWith('//') ? '' : trimmed;
+      if (!trimmed) return '';
+
+      // Block dangerous executable pseudo-protocols
+      if (/^(javascript|vbscript):/i.test(trimmed)) return '';
+
+      // Allow safe image/media data URIs
+      if (/^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/i.test(trimmed)) {
+        return resource ? trimmed : '';
       }
-      if (/^data:image\/(png|jpeg|gif|webp);base64,/i.test(trimmed)) return resource ? trimmed : '';
+      if (/^data:/i.test(trimmed)) return '';
+
+      // Safe anchor fragments for in-page navigation
+      if (trimmed.startsWith('#')) return resource ? '' : trimmed;
+
       try {
-        const resolved = new URL(trimmed, window.location.href);
-        if (resolved.origin !== window.location.origin) return '';
+        const base = (typeof window !== 'undefined' && window.location && window.location.href) || 'https://localhost';
+        const resolved = new URL(trimmed, base);
+        if (!['http:', 'https:'].includes(resolved.protocol)) return '';
+
+        // Media resources (images, videos, posters) and navigation links are safe with http/https
         return resolved.href;
       } catch {
         return '';
       }
+    };
+
+    const safeSrcset = (srcsetStr) => {
+      if (!srcsetStr || typeof srcsetStr !== 'string') return '';
+      const candidates = srcsetStr.split(',').map((part) => part.trim()).filter(Boolean);
+      const safeCandidates = [];
+      for (const candidate of candidates) {
+        const parts = candidate.split(/\s+/);
+        const urlPart = parts[0];
+        const descriptor = parts.slice(1).join(' ');
+        const sanitized = safeUrl(urlPart, true);
+        if (sanitized) {
+          safeCandidates.push(descriptor ? `${sanitized} ${descriptor}` : sanitized);
+        }
+      }
+      return safeCandidates.join(', ');
+    };
+
+    const sanitizeStyleUrls = (styleStr) => {
+      if (!styleStr || typeof styleStr !== 'string') return '';
+      return styleStr.replace(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gi, (match, quote, urlInside) => {
+        const trimmed = urlInside.trim();
+        const safe = safeUrl(trimmed, true);
+        return safe ? `url("${safe}")` : 'none';
+      });
     };
 
     parsed.body.querySelectorAll('*').forEach((el) => {
@@ -88,8 +127,14 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
         const name = attribute.name.toLowerCase();
         const value = attribute.value;
 
-        if (name.startsWith('on') || name === 'srcdoc' || name === 'srcset' || name === 'integrity') {
+        if (name.startsWith('on') || name === 'srcdoc' || name === 'integrity') {
           el.removeAttribute(attribute.name);
+          return;
+        }
+        if (name === 'srcset') {
+          const safe = safeSrcset(value);
+          if (safe) el.setAttribute(attribute.name, safe);
+          else el.removeAttribute(attribute.name);
           return;
         }
         if (name === 'data-mirror-id' && !/^d-\d+$/.test(value)) {
@@ -111,8 +156,7 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
           return;
         }
         if (name === 'style') {
-          const safeStyle = value
-            .replace(/url\s*\([^)]*\)/gi, '')
+          const safeStyle = sanitizeStyleUrls(value)
             .replace(/expression\s*\([^)]*\)/gi, '')
             .replace(/\\/g, '')
             .slice(0, 4_000);
@@ -126,12 +170,27 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
 
   sanitizeCss(css) {
     if (!css) return '';
-    return String(css)
+    const stripped = String(css)
       .slice(0, 4 * 1024 * 1024)
       .replace(/@import[^;]*;?/gi, '')
-      .replace(/url\s*\([^)]*\)/gi, 'none')
       .replace(/expression\s*\([^)]*\)/gi, 'none')
       .replace(/\\/g, '');
+
+    return stripped.replace(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gi, (match, quote, urlInside) => {
+      const trimmed = urlInside.trim();
+      if (!trimmed || /^(javascript|vbscript):/i.test(trimmed)) return 'none';
+      if (/^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/i.test(trimmed)) {
+        return `url("${trimmed}")`;
+      }
+      try {
+        const base = (typeof window !== 'undefined' && window.location && window.location.href) || 'https://localhost';
+        const resolved = new URL(trimmed, base);
+        if (['http:', 'https:'].includes(resolved.protocol)) {
+          return `url("${resolved.href}")`;
+        }
+      } catch {}
+      return 'none';
+    });
   },
 
   /**

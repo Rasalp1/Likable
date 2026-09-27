@@ -13,6 +13,34 @@ window.LikableHUD = window.LikeableHUD = window.DesignifyHUD =
   _toastTimeout: null,
   selectedTheme: 'linear',
   selectedEngine: 'claude',
+  selectedModels: {
+    claude: '',
+    codex: ''
+  },
+  selectedEfforts: {
+    claude: '',
+    codex: ''
+  },
+  engineModels: {
+    claude: [
+      { id: '', label: 'Default' },
+      { id: 'claude-opus-5-5', label: 'Opus 5.5' },
+      { id: 'claude-sonnet-5', label: 'Sonnet 5' },
+      { id: 'claude-fable-5-1', label: 'Fable 5.1' },
+      { id: 'claude-haiku-4-5', label: 'Haiku 4.5' },
+      { id: 'custom', label: 'Custom model…' }
+    ],
+    codex: [
+      { id: '', label: 'Default' },
+      { id: 'gpt-5.6-luna', label: '5.6 Luna' },
+      { id: 'gpt-5.6-terra', label: '5.6 Terra' },
+      { id: 'gpt-5.6-sol', label: '5.6 Sol' },
+      { id: 'gpt-6-luna', label: '6 Luna' },
+      { id: 'gpt-6-sol', label: '6 Sol' },
+      { id: 'gpt-6-astra', label: '6 Astra' },
+      { id: 'custom', label: 'Custom model…' }
+    ]
+  },
   isGenerating: false,
   hasGenerated: false,
 
@@ -653,6 +681,116 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
     }
   },
 
+  getModelForEngine(engine = this.selectedEngine) {
+    if (!this.selectedModels || typeof this.selectedModels !== 'object') return '';
+    const val = this.selectedModels[engine];
+    return typeof val === 'string' ? val.trim() : '';
+  },
+
+  getEffortForEngine(engine = this.selectedEngine) {
+    const val = this.selectedEfforts && this.selectedEfforts[engine];
+    return typeof val === 'string' ? val.trim() : '';
+  },
+
+  getModelDisplayBadge(engine = this.selectedEngine) {
+    const model = this.getModelForEngine(engine);
+    if (!model) return 'Default';
+    if (model === 'claude-opus-5-5' || model === 'opus') return 'Opus 5.5';
+    if (model === 'claude-sonnet-5' || model === 'sonnet') return 'Sonnet 5';
+    if (model === 'claude-fable-5-1' || model === 'fable') return 'Fable 5.1';
+    if (model === 'claude-haiku-4-5' || model === 'haiku') return 'Haiku 4.5';
+    if (model === 'gpt-5.6-luna' || model === '5.6-luna') return '5.6 Luna';
+    if (model === 'gpt-5.6-terra' || model === '5.6-terra') return '5.6 Terra';
+    if (model === 'gpt-5.6-sol' || model === '5.6-sol') return '5.6 Sol';
+    if (model === 'gpt-6-luna' || model === '6-luna') return '6 Luna';
+    if (model === 'gpt-6-sol' || model === '6-sol') return '6 Sol';
+    if (model === 'gpt-6-astra' || model === '6-astra') return '6 Astra';
+    return model.length > 14 ? `${model.slice(0, 12)}…` : model;
+  },
+
+  async loadEngineAndModelPreferences() {
+    try {
+      const keys = [
+        'likableSelectedEngine', 'likeableSelectedEngine', 'designifySelectedEngine',
+        'likableSelectedModels', 'likeableSelectedModels', 'designifySelectedModels',
+        'likableSelectedEfforts', 'likeableSelectedEfforts', 'designifySelectedEfforts',
+        'likableSelectedEffort', 'likeableSelectedEffort', 'designifySelectedEffort'
+      ];
+      let loadedEngine = null;
+      let loadedModels = null;
+      let loadedEfforts = null;
+      let fallbackEffort = '';
+
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        const res = await chrome.storage.local.get(keys);
+        loadedEngine = res.likableSelectedEngine || res.likeableSelectedEngine || res.designifySelectedEngine;
+        loadedModels = res.likableSelectedModels || res.likeableSelectedModels || res.designifySelectedModels;
+        loadedEfforts = res.likableSelectedEfforts || res.likeableSelectedEfforts || res.designifySelectedEfforts;
+        fallbackEffort = res.likableSelectedEffort || res.likeableSelectedEffort || res.designifySelectedEffort || '';
+      }
+      if (!loadedEngine && typeof localStorage !== 'undefined' && localStorage.getItem) {
+        loadedEngine = localStorage.getItem('likableSelectedEngine') || localStorage.getItem('likeableSelectedEngine');
+      }
+      if (!loadedModels && typeof localStorage !== 'undefined' && localStorage.getItem) {
+        try {
+          const raw = localStorage.getItem('likableSelectedModels') || localStorage.getItem('likeableSelectedModels');
+          if (raw) loadedModels = JSON.parse(raw);
+        } catch {}
+      }
+      if (!loadedEfforts && typeof localStorage !== 'undefined' && localStorage.getItem) {
+        try {
+          const raw = localStorage.getItem('likableSelectedEfforts') || localStorage.getItem('likeableSelectedEfforts');
+          if (raw) loadedEfforts = JSON.parse(raw);
+        } catch {}
+      }
+
+      if (loadedEngine === 'claude' || loadedEngine === 'codex') {
+        this.selectedEngine = loadedEngine;
+      }
+      if (loadedModels && typeof loadedModels === 'object') {
+        this.selectedModels = {
+          claude: typeof loadedModels.claude === 'string' ? loadedModels.claude : '',
+          codex: typeof loadedModels.codex === 'string' ? loadedModels.codex : ''
+        };
+      }
+      if (loadedEfforts && typeof loadedEfforts === 'object') {
+        this.selectedEfforts = {
+          claude: typeof loadedEfforts.claude === 'string' ? loadedEfforts.claude : fallbackEffort,
+          codex: typeof loadedEfforts.codex === 'string' ? loadedEfforts.codex : fallbackEffort
+        };
+      } else if (fallbackEffort) {
+        this.selectedEfforts = {
+          claude: fallbackEffort,
+          codex: fallbackEffort
+        };
+      }
+    } catch (e) {
+      console.warn('[Likable HUD] Failed to load engine/model preferences:', e);
+    }
+  },
+
+  async saveEngineAndModelPreferences() {
+    try {
+      const payload = {
+        likableSelectedEngine: this.selectedEngine,
+        likableSelectedModels: this.selectedModels,
+        likableSelectedEfforts: this.selectedEfforts,
+        likableSelectedEffort: this.selectedEfforts?.[this.selectedEngine] || ''
+      };
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        await chrome.storage.local.set(payload);
+      }
+      if (typeof localStorage !== 'undefined' && localStorage.setItem) {
+        localStorage.setItem('likableSelectedEngine', this.selectedEngine);
+        localStorage.setItem('likableSelectedModels', JSON.stringify(this.selectedModels));
+        localStorage.setItem('likableSelectedEfforts', JSON.stringify(this.selectedEfforts));
+        localStorage.setItem('likableSelectedEffort', this.selectedEfforts?.[this.selectedEngine] || '');
+      }
+    } catch (e) {
+      console.warn('[Likable HUD] Failed to save engine/model preferences:', e);
+    }
+  },
+
   /**
    * Mounts the HUD into the document
    */
@@ -663,6 +801,8 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
   },
 
   async mount() {
+    await this.loadEngineAndModelPreferences();
+
     if (window.DesignifyCache) {
       await window.DesignifyCache.loadDesigns();
       if (window.DesignifyCache.cachedList.length > 0) {
@@ -806,13 +946,6 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
         <div class="designify-field-heading"><span>Style</span><span class="designify-field-hint">Choose a starting point</span></div>
         <div class="designify-presets">
           ${presetButtons}
-        </div>
-        <div class="designify-model-row">
-          <span class="designify-field-label">Create with</span>
-          <div class="designify-engine-toggle" role="group" aria-label="AI provider">
-            <button class="designify-engine-btn ${this.selectedEngine === 'claude' ? 'active' : ''}" aria-pressed="${this.selectedEngine === 'claude'}" data-engine="claude" ${this.isGenerating ? 'disabled' : ''}>Claude</button>
-            <button class="designify-engine-btn ${this.selectedEngine === 'codex' ? 'active' : ''}" aria-pressed="${this.selectedEngine === 'codex'}" data-engine="codex" ${this.isGenerating ? 'disabled' : ''}>Codex</button>
-          </div>
         </div>
         <label for="designify-custom-prompt" class="designify-field-heading">Your direction <span class="designify-field-hint">Optional</span></label>
         <!-- Prompt and Redesign Action Bar -->
@@ -959,18 +1092,6 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
       }
 
       // Copy page buttons in HUD
-      // 3. Engine toggle
-      const engineBtn = e.target.closest('.designify-engine-btn');
-      if (engineBtn) {
-        this.selectedEngine = engineBtn.dataset.engine;
-        this.hudContainer.querySelectorAll('.designify-engine-btn').forEach((b) => {
-          b.classList.remove('active');
-          b.setAttribute('aria-pressed', 'false');
-        });
-        engineBtn.classList.add('active');
-        engineBtn.setAttribute('aria-pressed', 'true');
-      }
-
       // 5. Generate button
       if (e.target.closest('#designify-generate-btn') && !this.isGenerating) {
         this.handleGenerate();
@@ -1142,6 +1263,7 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
    * Triggers the redesign process
    */
   async handleGenerate() {
+    await this.loadEngineAndModelPreferences();
     const promptInput = this.hudContainer.querySelector('#designify-custom-prompt');
     const customPrompt = promptInput ? promptInput.value.trim() : '';
 
@@ -1153,6 +1275,8 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
       await window.DesignifyCoordinator.runRedesign({
         theme: this.selectedTheme,
         engine: this.selectedEngine,
+        model: this.getModelForEngine(this.selectedEngine),
+        effort: this.getEffortForEngine(this.selectedEngine) || undefined,
         customPrompt
       });
 

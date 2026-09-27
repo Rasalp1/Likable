@@ -151,6 +151,11 @@
       console.assert(hud.hudContainer.style.display === 'none', 'Toggle hides panel');
       hud.setEnabled(true);
       hud.show();
+      console.assert(!hud.hudContainer.querySelector('#designify-model-select'), 'Model selector dropdown is not in HUD');
+      console.assert(!hud.hudContainer.querySelector('#designify-model-badge'), 'Model badge is not in HUD');
+      console.assert(!hud.hudContainer.querySelector('#pref-effort-select'), 'Effort selector is not in HUD');
+      console.assert(typeof hud.loadEngineAndModelPreferences === 'function', 'loadEngineAndModelPreferences is defined');
+      console.assert(typeof hud.getEffortForEngine === 'function', 'getEffortForEngine is defined');
 
       console.log('--- TEST END ---');
     });

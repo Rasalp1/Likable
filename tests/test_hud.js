@@ -127,3 +127,69 @@ test('cached designs render as preset-style pills instead of horizontal scrollba
   assert.ok(html.includes('data-delete-design-id="des_linear_1"'), 'includes delete button for designs');
 });
 
+test('HUD does not render provider or model selector in HUD elements', async () => {
+  const { context, inject } = fixture();
+  inject();
+  const hud = context.window.DesignifyHUD;
+  await hud.init();
+  hud.render();
+  const html = hud.hudContainer.innerHTML;
+
+  assert.ok(!html.includes('designify-model-section'), 'does not render model section in HUD');
+  assert.ok(!html.includes('designify-model-select'), 'does not render model select dropdown in HUD');
+  assert.ok(!html.includes('designify-model-badge'), 'does not render model badge in HUD');
+  assert.ok(!html.includes('designify-engine-toggle'), 'does not render engine toggle in HUD');
+  assert.ok(!html.includes('designify-engine-btn'), 'does not render engine buttons in HUD');
+  assert.ok(!html.includes('designify-effort'), 'does not render effort controls in HUD');
+});
+
+test('HUD loads engine, model, and effort preferences transparently from chrome storage', async () => {
+  const { context, inject } = fixture();
+  const mockStorage = {
+    likableSelectedEngine: 'codex',
+    likableSelectedModels: { claude: 'claude-sonnet-5', codex: 'gpt-6-luna' },
+    likableSelectedEfforts: { claude: 'max', codex: 'xhigh' }
+  };
+  context.chrome = {
+    storage: {
+      local: {
+        get: async (keys) => {
+          if (Array.isArray(keys)) {
+            const res = {};
+            keys.forEach((k) => { if (mockStorage[k] !== undefined) res[k] = mockStorage[k]; });
+            return res;
+          }
+          return mockStorage;
+        },
+        set: async (obj) => Object.assign(mockStorage, obj)
+      }
+    }
+  };
+  inject();
+  const hud = context.window.DesignifyHUD;
+  await hud.init();
+
+  assert.equal(hud.selectedEngine, 'codex');
+  assert.equal(hud.getModelForEngine('codex'), 'gpt-6-luna');
+  assert.equal(hud.getModelForEngine('claude'), 'claude-sonnet-5');
+  assert.equal(hud.getModelForEngine(), 'gpt-6-luna');
+  assert.equal(hud.getModelDisplayBadge('codex'), '6 Luna');
+  assert.equal(hud.getModelDisplayBadge('claude'), 'Sonnet 5');
+  assert.equal(hud.getEffortForEngine('codex'), 'xhigh');
+  assert.equal(hud.getEffortForEngine('claude'), 'max');
+  assert.equal(hud.getEffortForEngine(), 'xhigh');
+
+  // Updating storage reflects on loadEngineAndModelPreferences
+  mockStorage.likableSelectedEngine = 'claude';
+  mockStorage.likableSelectedModels.claude = 'claude-opus-5-5';
+  mockStorage.likableSelectedEfforts.claude = 'high';
+  await hud.loadEngineAndModelPreferences();
+  assert.equal(hud.selectedEngine, 'claude');
+  assert.equal(hud.getModelForEngine(), 'claude-opus-5-5');
+  assert.equal(hud.getModelDisplayBadge(), 'Opus 5.5');
+  assert.equal(hud.getEffortForEngine(), 'high');
+});
+
+
+
+

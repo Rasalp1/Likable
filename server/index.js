@@ -79,6 +79,40 @@ export function validatePayload(payload) {
     throw httpError(400, 'engine must be either claude or codex.');
   }
 
+  let model = null;
+  if (payload.model !== undefined && payload.model !== null && payload.model !== '') {
+    if (typeof payload.model !== 'string') {
+      throw httpError(400, 'model must be a string.');
+    }
+    const trimmedModel = payload.model.trim();
+    if (trimmedModel) {
+      if (trimmedModel.length > 128) {
+        throw httpError(413, 'model exceeds maximum length of 128.');
+      }
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9_.:@/-]*$/.test(trimmedModel)) {
+        throw httpError(400, 'model contains invalid characters.');
+      }
+      model = trimmedModel;
+    }
+  }
+
+  let effort = '';
+  if (payload.effort !== undefined && payload.effort !== null) {
+    if (typeof payload.effort !== 'string') {
+      throw httpError(400, 'effort must be a string.');
+    }
+    const trimmedEffort = payload.effort.trim();
+    if (trimmedEffort) {
+      if (trimmedEffort.length > 32) {
+        throw httpError(413, 'effort exceeds maximum length of 32.');
+      }
+      if (!/^[a-zA-Z0-9_-]+$/.test(trimmedEffort)) {
+        throw httpError(400, 'effort contains invalid characters.');
+      }
+      effort = trimmedEffort.toLowerCase();
+    }
+  }
+
   const domTree = payload.domTree === undefined ? [] : payload.domTree;
   if (!Array.isArray(domTree) || domTree.length > 200) {
     throw httpError(413, 'domTree must contain at most 200 nodes.');
@@ -122,7 +156,9 @@ export function validatePayload(payload) {
     customPrompt: assertString(payload.customPrompt, 'customPrompt', 4_000),
     domTree,
     screenshot,
-    engine
+    engine,
+    model,
+    effort: effort || undefined
   };
 }
 
@@ -317,7 +353,7 @@ export function parseJsonSafely(rawOutput) {
   return null;
 }
 
-export function runCLI({ engine = 'claude', prompt, workDir, timeoutMs = DEFAULT_CLI_TIMEOUT_MS, signal } = {}) {
+export function runCLI({ engine = 'claude', model, effort, prompt, workDir, timeoutMs = DEFAULT_CLI_TIMEOUT_MS, signal } = {}) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(httpError(499, 'Request aborted by client.'));
@@ -326,7 +362,20 @@ export function runCLI({ engine = 'claude', prompt, workDir, timeoutMs = DEFAULT
     const claudeBin = resolveBinary('claude');
     const codexBin = resolveBinary('codex');
     const command = engine === 'codex' ? (codexBin || 'codex') : (claudeBin || 'claude');
-    const args = engine === 'codex' ? ['exec', '--skip-git-repo-check', '-'] : ['-p'];
+    const normalizedEffort = effort && effort !== 'default' ? effort.toLowerCase() : null;
+    const args = engine === 'codex'
+      ? [
+          'exec',
+          '--skip-git-repo-check',
+          ...(model ? ['-m', model] : []),
+          ...(normalizedEffort ? ['-c', `model_reasoning_effort="${normalizedEffort}"`] : []),
+          '-'
+        ]
+      : [
+          '-p',
+          ...(model ? ['--model', model] : []),
+          ...(normalizedEffort ? ['--effort', normalizedEffort] : [])
+        ];
     const env = {
       ...process.env,
       PATH: `${os.homedir()}/.local/bin:/usr/local/bin:/opt/homebrew/bin:${os.homedir()}/.codex/bin:${process.env.PATH || ''}`
@@ -428,6 +477,21 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
         response.claudeVersion = getBinaryVersion(claudeBin);
         response.codexVersion = getBinaryVersion(codexBin);
         response.defaultEngine = 'claude';
+        response.models = {
+          claude: [
+            { id: '', label: 'Default (CLI default)' },
+            { id: 'sonnet', label: 'Claude 3.7 Sonnet (sonnet)' },
+            { id: 'haiku', label: 'Claude 3.5 Haiku (haiku)' },
+            { id: 'opus', label: 'Claude Opus (opus)' }
+          ],
+          codex: [
+            { id: '', label: 'Default (CLI default)' },
+            { id: 'o3', label: 'o3' },
+            { id: 'o3-mini', label: 'o3-mini' },
+            { id: 'o1', label: 'o1' },
+            { id: 'gpt-4o', label: 'GPT-4o' }
+          ]
+        };
       }
       sendJson(res, 200, response);
       return;
@@ -515,6 +579,8 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
 
       const { stdout } = await runCliImpl({
         engine: payload.engine,
+        model: payload.model,
+        effort: payload.effort,
         prompt,
         workDir: os.tmpdir(),
         signal: abortController.signal
@@ -534,7 +600,9 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
         summary: typeof result.summary === 'string' ? result.summary.slice(0, 1_000) : 'Redesign generated with modern aesthetics',
         css: typeof result.css === 'string' ? result.css : '',
         html: result.html,
-        engineUsed: payload.engine
+        engineUsed: payload.engine,
+        modelUsed: payload.model || undefined,
+        effortUsed: payload.effort || undefined
       });
     } catch (error) {
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;

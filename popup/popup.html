@@ -48,6 +48,54 @@
       <p id="token-status" aria-live="polite">Start the bridge, then paste the token printed in its terminal.</p>
     </section>
 
+    <section class="pref-card">
+      <div class="pref-header">
+        <label for="pref-engine-select">AI Provider & Model</label>
+        <span class="pref-save-badge" id="pref-save-badge" aria-live="polite">Saved</span>
+      </div>
+      <div class="pref-grid">
+        <div class="pref-row">
+          <label for="pref-engine-select" class="pref-sublabel">Provider</label>
+          <select id="pref-engine-select" class="pref-select">
+            <option value="claude">Claude Code</option>
+            <option value="codex">Codex</option>
+          </select>
+        </div>
+        <div class="pref-row" id="pref-claude-model-row">
+          <label for="pref-claude-model-select" class="pref-sublabel">Model</label>
+          <select id="pref-claude-model-select" class="pref-select">
+            <option value="">Default</option>
+            <option value="claude-opus-5-5">Opus 5.5</option>
+            <option value="claude-sonnet-5">Sonnet 5</option>
+            <option value="claude-fable-5-1">Fable 5.1</option>
+            <option value="claude-haiku-4-5">Haiku 4.5</option>
+            <option value="custom">Custom model ID…</option>
+          </select>
+        </div>
+        <div class="pref-row" id="pref-codex-model-row" style="display: none;">
+          <label for="pref-codex-model-select" class="pref-sublabel">Model</label>
+          <select id="pref-codex-model-select" class="pref-select">
+            <option value="">Default</option>
+            <option value="gpt-5.6-luna">5.6 Luna</option>
+            <option value="gpt-5.6-terra">5.6 Terra</option>
+            <option value="gpt-5.6-sol">5.6 Sol</option>
+            <option value="gpt-6-luna">6 Luna</option>
+            <option value="gpt-6-sol">6 Sol</option>
+            <option value="gpt-6-astra">6 Astra</option>
+            <option value="custom">Custom model ID…</option>
+          </select>
+        </div>
+        <div class="pref-row" id="pref-custom-model-row" style="display: none;">
+          <label for="pref-custom-model-input" class="pref-sublabel">Custom ID</label>
+          <input id="pref-custom-model-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. claude-sonnet-5 or gpt-6-luna" class="pref-input" />
+        </div>
+        <div class="pref-row" id="pref-effort-row">
+          <label for="pref-effort-select" class="pref-sublabel">Effort</label>
+          <select id="pref-effort-select" class="pref-select"></select>
+        </div>
+      </div>
+    </section>
+
     <div class="visibility-row">
       <div><label for="overlay-toggle">Show page controls</label><p>Floating button on this tab</p></div>
       <label class="switch"><input id="overlay-toggle" type="checkbox" role="switch" checked disabled><span class="switch-track" aria-hidden="true"></span></label>

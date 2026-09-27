@@ -170,7 +170,7 @@ Pinning the extension ensures 1-click access whenever you are browsing:
 2. Open the Likable popup once for the active tab. The floating **Likable launcher button** will appear at the bottom-right corner of the page.
 3. Click the launcher button to expand the glassmorphic in-page HUD.
 4. Select a style preset (**Linear**, **Apple**, or **Lovable**), or type your own instructions into the **Your direction** box (e.g., *"Dark bento-grid with neon cyan accents and soft pill buttons"*).
-5. Choose your preferred AI engine (**Claude** or **Codex**).
+5. Configure your preferred AI provider (**Claude** or **Codex**), model (**Opus 5.5**, **Sonnet 5**, **Fable 5.1**, **Haiku 4.5** for Claude; **5.6 Luna**, **5.6 Terra**, **5.6 Sol**, **6 Luna**, **6 Sol**, **6 Astra** for Codex), and reasoning effort from the extension icon popup dropdown. The in-page HUD automatically uses these settings.
 6. Click **Redesign page**!
 7. Watch the live progress bar as Likable reads the DOM, sends the multimodal snapshot to your CLI, and streams the new redesign onto the screen.
 8. **Interact with the redesigned page**: Click links, type into search inputs, and submit forms—all interactions are mirrored in real time!

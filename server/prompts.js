@@ -369,13 +369,20 @@ ${JSON.stringify(domTree, null, 2)}
    - For example: if the original search input had \`data-mirror-id="input-1"\`, your redesigned modern search input MUST have \`data-mirror-id="input-1"\`.
    - If an original CTA button had \`data-mirror-id="btn-3"\`, your redesigned button MUST have \`data-mirror-id="btn-3"\`.
 
-3. **Visual Excellence & Modern Aesthetics**:
+3. **Preserve and Showcase Original Images & Media Assets (MANDATORY)**:
+   - When the extracted tree contains images (\`img\`) with \`src\` and \`alt\`, or videos (\`video\`) with \`src\` and \`poster\`, **YOU MUST PRESERVE AND FEATURE THEM in the redesign**.
+   - **Retain Exact URLs**: Keep the exact \`src\` and \`alt\` attributes provided in the extracted tree. NEVER discard original product photography, hero images, thumbnails, logos, or avatars, and NEVER replace them with broken placeholders or fake placeholder URLs.
+   - **Modern Media Styling**: Style images cleanly with modern aesthetics: responsive max-width (\`max-width: 100%; height: auto; object-fit: cover;\`), refined corner radii (\`border-radius\`), subtle border/shadow treatments matching the theme, and balanced aspect ratios.
+   - **Video Elements**: If \`<video>\` elements are present in the extracted data, preserve the \`<video>\` tag with its original \`src\`, \`poster\`, \`controls\`, \`autoplay\`, \`loop\`, and \`muted\` attributes.
+   - **Media Mirror IDs**: Retain the \`data-mirror-id="..."\` attribute on images and videos so clicks (e.g. opening a lightbox or gallery) mirror to the host page.
+
+4. **Visual Excellence & Modern Aesthetics**:
    - WOW the user at first glance! Elevate this website into an award-winning modern design with top-tier craft.
    - Clean, modern layout (hero section, navigation header, featured cards/bento grid, search bar, polished footer).
    - Rich typography (Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif).
    - Cohesive color discipline: utilize the provided theme tokens with disciplined distribution (neutral or richly tinted canvas, structured surfaces, and the theme's intentional primary/secondary accent colors, honoring vibrant themes like Lovable which celebrate energetic pink, purple, and blue harmonies).
 
-4. **Full-Page Viewport Canvas (MANDATORY)**:
+5. **Full-Page Viewport Canvas (MANDATORY)**:
    - You are redesigning the ENTIRE WEBPAGE, NOT a widget, popup, or floating card in the corner.
    - The root wrapper <div id="designify-container"> MUST be a complete full-screen web application layout spanning 100% width and min-height: 100vh.
    - NEVER use position: fixed; right: 0; or float: right; or max-width: 400px; on #designify-container. It must fill the full width of the screen.

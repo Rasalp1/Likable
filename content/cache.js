@@ -117,6 +117,8 @@ window.LikableCache = window.LikeableCache = window.DesignifyCache =
       summary: redesign.summary || '',
       customPrompt: redesign.customPrompt || '',
       engineUsed: redesign.engineUsed || 'claude',
+      modelUsed: redesign.modelUsed || undefined,
+      effortUsed: redesign.effortUsed || undefined,
       timestamp: Date.now(),
       timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       url: totalUrl,

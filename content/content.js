@@ -34,8 +34,9 @@ window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordin
   /**
    * Main pipeline: Ingest -> Capture Screenshot -> Call Bridge -> Project in Shadow DOM
    */
-  async runRedesign({ theme, engine, customPrompt }) {
-    console.log(`[Likable] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
+  async runRedesign({ theme, engine, model, effort, customPrompt }) {
+    const modelLog = model ? ` (model: ${model}${effort ? `, effort: ${effort}` : ''})` : (effort ? ` (effort: ${effort})` : '');
+    console.log(`[Likable] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine}${modelLog})...`);
 
     // 1. Ingest DOM and tag elements
     window.DesignifyHUD?.updateProgress(20, 'Reading DOM elements...', 'Scanning page structure & tagging interactive elements');
@@ -87,6 +88,8 @@ window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordin
       theme,
       customPreset,
       engine,
+      model: model || undefined,
+      effort: effort || undefined,
       customPrompt,
       domTree: pageData.domTree,
       screenshotBase64
@@ -94,7 +97,8 @@ window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordin
 
     // 4. Send to Local Bridge Server (via background service worker for extension-origin security)
     const engineLabel = engine === 'codex' ? 'Codex' : 'Claude';
-    window.DesignifyHUD?.updateProgress(55, `Redesigning structure with ${engineLabel}...`, 'Synthesizing modern layout, color palette & typography');
+    const progressLabel = model ? `Redesigning structure with ${engineLabel} (${model})...` : `Redesigning structure with ${engineLabel}...`;
+    window.DesignifyHUD?.updateProgress(55, progressLabel, 'Synthesizing modern layout, color palette & typography');
     window.DesignifyHUD?.startSynthesisTicker(engine);
 
     console.log(`[Likable] Sending request to local bridge...`);
@@ -150,7 +154,8 @@ window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordin
         themeName: result.themeName || theme,
         summary: result.summary,
         customPrompt,
-        engineUsed: engine,
+        engineUsed: result.engineUsed || engine,
+        modelUsed: result.modelUsed || model || undefined,
         html: result.html,
         css: result.css
       });

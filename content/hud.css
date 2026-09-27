@@ -54,7 +54,7 @@
   gap: 16px;
 }
 .designify-hud-header, .designify-hud-brand, .designify-hud-actions,
-.designify-engine-toggle, .designify-presets, .designify-hud-main-bar,
+.designify-presets, .designify-hud-main-bar,
 .designify-hud-secondary-bar, .designify-control-group, .designify-slider-container,
 .designify-hint, .designify-progress-header, .designify-progress-status,
 .designify-designs-grid {
@@ -68,10 +68,6 @@
 .designify-header-action-btn:hover:not(:disabled) { background: rgba(60, 60, 67, 0.12); color: var(--designify-ink); }
 .designify-header-action-btn.success { background: #e4f3e8; color: #248044; }
 .designify-header-btn-text { white-space: nowrap; }
-.designify-engine-toggle { background: rgba(118, 118, 128, 0.1); padding: 3px; border-radius: 9px; }
-.designify-engine-btn { background: transparent; color: var(--designify-secondary); border: 0; border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 500; transition: background-color 0.15s; }
-.designify-engine-btn:hover:not(:disabled) { color: var(--designify-ink); }
-.designify-engine-btn.active { background: #fff; color: var(--designify-ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .designify-close-btn { display: grid; place-items: center; width: 28px; height: 28px; padding: 4px; border: 0; border-radius: 7px; background: transparent; color: var(--designify-secondary); }
 .designify-close-btn:hover { color: var(--designify-ink); background: rgba(60, 60, 67, 0.08); }
 .designify-presets {
@@ -204,10 +200,10 @@
 /* A single panel opens directly from the launcher. */
 .designify-panel-mark { display: grid; place-items: center; width: 36px; height: 36px; background: #fff; border: 1px solid var(--designify-hairline); border-radius: 11px; }
 .designify-panel-subtitle { display: block; color: var(--designify-secondary); font-size: 11px; font-weight: 400; letter-spacing: normal; margin-top: 3px; }
-.designify-field-heading, .designify-model-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 500; }
+.designify-field-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 500; }
 .designify-field-hint { font-size: 11px; font-weight: 400; color: var(--designify-secondary); }
-.designify-model-row { padding: 12px 0; border-top: 1px solid var(--designify-hairline); border-bottom: 1px solid var(--designify-hairline); }
 .designify-field-label { color: #515158; }
+
 
 .designify-panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--designify-hairline); padding-top: 12px; }
 .designify-copy-btn { display: flex; align-items: center; gap: 6px; background: transparent; border: 0; border-radius: 6px; padding: 5px 0; color: #515158; font-size: 11px; }

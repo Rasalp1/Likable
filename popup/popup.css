@@ -39,6 +39,27 @@ input::placeholder { color: #86868b; }
 :focus-visible { outline: 3px solid #007aff70; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
+.pref-card { display: flex; flex-direction: column; gap: 8px; }
+.pref-header { display: flex; align-items: center; justify-content: space-between; }
+.pref-header label { font-size: 12px; font-weight: 500; }
+.pref-save-badge { font-size: 10px; color: #248044; font-weight: 600; opacity: 0; transition: opacity 0.2s; }
+.pref-save-badge.show { opacity: 1; }
+.pref-grid { display: flex; flex-direction: column; gap: 8px; background: #fff; border: 1px solid #e7e7eb; border-radius: 12px; padding: 10px 14px; }
+.pref-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pref-sublabel { font-size: 11px; color: #6e6e73; flex-shrink: 0; }
+.pref-select, .pref-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 4px 8px;
+  border: 1px solid #d9d9de;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 11px;
+  color: #1d1d1f;
+}
+.pref-select:focus, .pref-input:focus { border-color: #007aff; outline: none; }
+
 .visibility-row { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e0e0e5; padding-top: 18px; gap: 16px; }
 .visibility-row label { font-size: 12px; font-weight: 500; }
 .visibility-row p { color: #6e6e73; font-size: 11px; margin-top: 3px; }

@@ -129,3 +129,76 @@ test('bridge server errors (such as 504) report server error without claiming se
   );
 });
 
+test('runRedesign forwards engine and model preference to background service worker', async () => {
+  let capturedPayload = null;
+  const context = vm.createContext({
+    console: { log() {}, warn() {}, error() {} },
+    document: {
+      readyState: 'complete',
+      addEventListener() {},
+      getElementById() { return null; },
+      createElement() { return {}; },
+      head: { appendChild() {} }
+    },
+    window: {
+      DesignifyHUD: {
+        async init() {},
+        render() {},
+        updateProgress() {},
+        startSynthesisTicker() {},
+        stopSynthesisTicker() {}
+      },
+      DesignifyOverlay: { init() {}, render() {} },
+      DesignifyCache: { saveDesign: async () => {} },
+      DesignifyIngester: {
+        extractPageData() {
+          return {
+            url: 'https://example.com/pricing',
+            title: 'Pricing',
+            metaDescription: 'Plans',
+            domTree: []
+          };
+        }
+      }
+    },
+    chrome: {
+      runtime: {
+        getURL: (path) => `chrome-extension://test/${path}`,
+        sendMessage(message, callback) {
+          if (message.action === 'capture_visible_tab') {
+            callback({ success: true, dataUrl: null });
+            return;
+          }
+          if (message.action === 'call_bridge_redesign') {
+            capturedPayload = message.payload;
+            callback({
+              success: true,
+              data: { html: '<div>Redesign</div>', css: '', themeName: 'Linear', summary: 'Done' }
+            });
+            return;
+          }
+          callback({ success: false });
+        }
+      }
+    }
+  });
+
+  vm.runInContext(contentSource, context);
+
+  await context.window.DesignifyCoordinator.runRedesign({
+    theme: 'linear',
+    engine: 'claude',
+    model: 'claude-sonnet-5',
+    effort: 'high',
+    customPrompt: 'Refined UI'
+  });
+
+  assert.ok(capturedPayload, 'Expected call_bridge_redesign to be called');
+  assert.equal(capturedPayload.engine, 'claude');
+  assert.equal(capturedPayload.model, 'claude-sonnet-5');
+  assert.equal(capturedPayload.effort, 'high');
+  assert.equal(capturedPayload.theme, 'linear');
+  assert.equal(capturedPayload.customPrompt, 'Refined UI');
+});
+
+
