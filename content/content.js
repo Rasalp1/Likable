@@ -1,5 +1,5 @@
 /**
- * Designify - Main Content Script Coordinator
+ * Likeable - Main Content Script Coordinator
  * Orchestrates DOM ingestion, screenshot capture, bridge communication,
  * and Shadow DOM projection.
  */
@@ -14,32 +14,25 @@ function ensureStylesInjected() {
   }
 }
 
-window.DesignifyCoordinator = {
+window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordinator || window.DesignifyCoordinator || {
   initialized: false,
 
-  init() {
-    ensureStylesInjected();
-
-    // Initialize HUD and Overlay
-    if (window.DesignifyHUD) {
-      window.DesignifyHUD.init();
-      window.DesignifyHUD.show();
-    }
-    if (window.DesignifyOverlay) {
-      window.DesignifyOverlay.init();
-    }
-
-    if (this.initialized) return;
-    this.initialized = true;
-
-    console.log('[Designify] Initializing Designify suite on active tab...');
+  async init() {
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = (async () => {
+      ensureStylesInjected();
+      await window.DesignifyHUD?.init();
+      window.DesignifyOverlay?.init();
+      this.initialized = true;
+    })();
+    return this._initPromise;
   },
 
   /**
    * Main pipeline: Ingest -> Capture Screenshot -> Call Bridge -> Project in Shadow DOM
    */
   async runRedesign({ theme, engine, customPrompt }) {
-    console.log(`[Designify] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
+    console.log(`[Likeable] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
 
     // 1. Ingest DOM and tag elements
     window.DesignifyHUD?.updateProgress(20, 'Reading DOM elements...', 'Scanning page structure & tagging interactive elements');
@@ -54,20 +47,42 @@ window.DesignifyCoordinator = {
       });
       if (response && response.success) {
         screenshotBase64 = response.dataUrl;
-        console.log('[Designify] Viewport screenshot captured successfully.');
+        console.log('[Likeable] Viewport screenshot captured successfully.');
       } else {
-        console.warn('[Designify] Screenshot capture skipped or failed:', response?.error);
+        console.warn('[Likeable] Screenshot capture skipped or failed:', response?.error);
       }
     } catch (e) {
-      console.warn('[Designify] Background screenshot message failed:', e);
+      console.warn('[Likeable] Background screenshot message failed:', e);
     }
 
     // 3. Assemble payload
+    let customPreset = null;
+    if (window.DesignifyHUD && Array.isArray(window.DesignifyHUD.customPresets)) {
+      const found = window.DesignifyHUD.customPresets.find((p) => p.id === theme);
+      if (found) {
+        customPreset = {
+          id: found.id,
+          name: found.label || found.name,
+          description: found.description || `Design system extracted from ${found.originUrl || found.url || 'a website'}`,
+          originUrl: found.originUrl || found.url || '',
+          url: found.url || found.originUrl || '',
+          palette: found.palette,
+          layout: found.layout,
+          geometry: found.geometry,
+          padding: found.padding,
+          elevation: found.elevation,
+          typography: found.typography,
+          mandate: found.mandate
+        };
+      }
+    }
+
     const payload = {
       url: pageData.url,
       title: pageData.title,
       metaDescription: pageData.metaDescription,
       theme,
+      customPreset,
       engine,
       customPrompt,
       domTree: pageData.domTree,
@@ -79,7 +94,7 @@ window.DesignifyCoordinator = {
     window.DesignifyHUD?.updateProgress(55, `Redesigning structure with ${engineLabel}...`, 'Synthesizing modern layout, color palette & typography');
     window.DesignifyHUD?.startSynthesisTicker(engine);
 
-    console.log(`[Designify] Sending request to local bridge...`);
+    console.log(`[Likeable] Sending request to local bridge...`);
     let result = null;
 
     try {
@@ -96,22 +111,22 @@ window.DesignifyCoordinator = {
         }
         result = bgRes.data;
       } else {
-        throw new Error('Bridge requests require the Designify extension context.');
+        throw new Error('Bridge requests require the Likeable extension context.');
       }
     } catch (err) {
       window.DesignifyHUD?.stopSynthesisTicker();
-      console.warn('[Designify] Bridge request failed or timed out:', err);
+      console.warn('[Likeable] Bridge request failed or timed out:', err);
       // Fallback: If bridge server was unreachable, throw with clear instructions
-      throw new Error(`Could not communicate with Designify Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
+      throw new Error(`Could not communicate with Likeable Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
     }
 
     window.DesignifyHUD?.stopSynthesisTicker();
 
     if (!result || !result.html) {
-      throw new Error('Designify bridge did not return valid redesign markup.');
+      throw new Error('Likeable bridge did not return valid redesign markup.');
     }
 
-    console.log('[Designify] Redesign received from AI! Projecting into Shadow DOM...');
+    console.log('[Likeable] Redesign received from AI! Projecting into Shadow DOM...');
     window.DesignifyHUD?.updateProgress(90, 'Projecting Shadow DOM...', 'Mounting isolated design and linking bi-directional events');
 
     // 5. Project the redesign inside the Shadow DOM overlay
@@ -149,3 +164,4 @@ if (document.readyState === 'loading') {
 } else {
   window.DesignifyCoordinator.init();
 }
+window.LikeableCoordinator = window.DesignifyCoordinator;

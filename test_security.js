@@ -63,6 +63,29 @@ test('payload validation enforces supported engines and bounded input', () => {
     () => validatePayload({ domTree: Array.from({ length: 201 }, () => ({})) }),
     /at most 200 nodes/
   );
+
+  // Custom preset validation
+  const withPreset = validatePayload({
+    engine: 'claude',
+    customPreset: {
+      id: 'preset-stripe',
+      name: 'Stripe',
+      description: 'Extracted Stripe design system',
+      palette: { background: '#f6f9fc', accent: '#635bff' },
+      mandate: '### Stripe mandate'
+    }
+  });
+  assert.equal(withPreset.customPreset.name, 'Stripe');
+  assert.equal(withPreset.customPreset.palette.accent, '#635bff');
+
+  assert.throws(
+    () => validatePayload({ customPreset: 'not-an-object' }),
+    /customPreset must be an object/
+  );
+  assert.throws(
+    () => validatePayload({ customPreset: { name: 'x'.repeat(129) } }),
+    /customPreset.name exceeds/
+  );
 });
 
 test('token files are generated securely and environment tokens are validated', () => {

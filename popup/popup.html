@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Designify</title>
+  <title>Likeable</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -11,69 +11,48 @@
     <!-- Header -->
     <header class="popup-header">
       <div class="brand">
-        <div class="logo-icon">✨</div>
+        <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 10h18M10 10v11"/></svg></div>
         <div class="brand-text">
-          <h1>Designify</h1>
+          <h1>Likeable</h1>
           <span class="version">v1.1.0</span>
         </div>
       </div>
-      <div class="status-indicator" id="bridge-status-indicator" title="Local Bridge Status">
+      <button type="button" class="status-indicator" id="bridge-status-indicator" title="Refresh connection status" aria-label="Refresh connection status">
         <span class="status-dot ping"></span>
-        <span id="bridge-status-text">Checking...</span>
-      </div>
+        <span id="bridge-status-text" aria-live="polite">Checking…</span>
+      </button>
     </header>
 
     <!-- Main Status Card -->
     <div class="status-card">
       <div class="status-row">
-        <span class="label">Local Bridge:</span>
-        <span class="value" id="val-bridge">http://127.0.0.1:3030</span>
+        <span class="label">Local bridge</span>
+        <span class="value" id="val-bridge">127.0.0.1:3030</span>
       </div>
       <div class="status-row">
-        <span class="label">Claude Code CLI:</span>
-        <span class="value badge-success" id="val-claude">Checking...</span>
+        <span class="label">Claude Code</span>
+        <span class="value" id="val-claude">Checking...</span>
       </div>
       <div class="status-row">
-        <span class="label">Codex CLI:</span>
-        <span class="value badge-success" id="val-codex">Checking...</span>
+        <span class="label">Codex</span>
+        <span class="value" id="val-codex">Checking...</span>
       </div>
     </div>
 
     <section class="token-card">
       <label for="bridge-token">Bridge token</label>
       <div class="token-row">
-        <input id="bridge-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste token from the server terminal">
+        <input id="bridge-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your bridge token">
         <button id="save-bridge-token" class="btn-secondary" type="button">Save</button>
       </div>
-      <p id="token-status">Start the bridge, then paste the token printed in its terminal.</p>
+      <p id="token-status" aria-live="polite">Start the bridge, then paste the token printed in its terminal.</p>
     </section>
 
-    <!-- Quick Action -->
-    <button id="btn-launch-hud" class="btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-      </svg>
-      Activate HUD on Tab
-    </button>
-
-    <!-- Injection Alert Banner -->
-    <div id="action-alert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #fca5a5; line-height: 1.4;">
+    <div class="visibility-row">
+      <div><label for="overlay-toggle">Show page controls</label><p>Floating button on this tab</p></div>
+      <label class="switch"><input id="overlay-toggle" type="checkbox" role="switch" checked disabled><span class="switch-track" aria-hidden="true"></span></label>
     </div>
-
-    <!-- Quick Tips -->
-    <div class="tips-box">
-      <h3>Quick Controls</h3>
-      <ul>
-        <li><strong>Redesign:</strong> Click presets or write custom prompts</li>
-        <li><strong>Split View:</strong> Compare original vs redesign side-by-side</li>
-        <li><strong>Peek:</strong> Hold <kbd>Space</kbd> to see original page</li>
-        <li><strong>Mirror:</strong> Clicks & typing sync to live website!</li>
-      </ul>
-    </div>
-
-    <footer class="popup-footer">
-      <span>Page data stays local until your CLI sends it to its provider.</span>
-    </footer>
+    <div id="action-alert" role="alert" style="display: none;"></div>
   </div>
 
   <script src="popup.js"></script>

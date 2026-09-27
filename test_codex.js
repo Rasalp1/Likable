@@ -1,7 +1,7 @@
 import { bridgeHeaders, getBridgeToken } from './test_support.js';
 
 /**
- * Quick verification for Codex engine in Designify Bridge
+ * Quick verification for Codex engine in Likeable Bridge
  */
 async function testCodex() {
   console.log('Testing Codex Engine via Bridge Server...');

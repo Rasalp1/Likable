@@ -1,14 +1,14 @@
 {
-  "name": "designify",
+  "name": "likeable",
   "version": "1.1.0",
-  "description": "Designify - AI Live Website Redesign Chrome Extension & Local CLI Bridge",
+  "description": "Likeable - AI Live Website Redesign Chrome Extension & Local CLI Bridge",
   "type": "module",
   "main": "server/index.js",
   "scripts": {
     "build": "node scripts/build.js",
     "start": "node server/index.js",
     "server": "node server/index.js",
-    "test": "node --test test_security.js",
+    "test": "node --test test_security.js test_hud.js test_presets.js",
     "test:integration": "node test_bridge.js",
     "test:codex": "node test_codex.js"
   },
@@ -24,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rasalp1/Designify.git"
+    "url": "https://github.com/Rasalp1/Likeable.git"
   },
   "engines": {
     "node": ">=20"

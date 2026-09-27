@@ -1,38 +1,90 @@
 /**
- * Designify - Design Cache & History Manager
+ * Likeable - Design Cache & History Manager
  * Persists generated redesigns in chrome.storage.local (with localStorage fallback)
  * allowing instant switching between designs without calling AI again.
  */
 
-window.DesignifyCache = {
+window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.DesignifyCache || {
   currentActiveId: null,
   cachedList: [],
 
-  getStorageKey() {
-    // Key by origin and pathname so query params don't fragment history unnecessarily
-    return `designify_designs_${window.location.origin}${window.location.pathname}`;
+  getTotalUrl(url) {
+    if (url && typeof url === 'string') return url.trim();
+    try {
+      if (typeof window !== 'undefined' && window.location) {
+        return (
+          window.location.href ||
+          `${window.location.origin || ''}${window.location.pathname || ''}${window.location.search || ''}${window.location.hash || ''}`
+        ).trim();
+      }
+    } catch {}
+    return '';
+  },
+
+  getStorageKey(url) {
+    const totalUrl = this.getTotalUrl(url);
+    // Key by total URL so query params, routes, and hash paths maintain distinct redesign history
+    return `likeable_designs_${totalUrl}`;
+  },
+
+  getLegacyStorageKey(url) {
+    const totalUrl = this.getTotalUrl(url);
+    return `designify_designs_${totalUrl}`;
+  },
+
+  getLegacyPathStorageKeys() {
+    try {
+      if (typeof window !== 'undefined' && window.location && window.location.origin) {
+        const originPath = `${window.location.origin}${window.location.pathname || ''}`;
+        return [
+          `likeable_designs_${originPath}`,
+          `designify_designs_${originPath}`
+        ];
+      }
+    } catch {}
+    return [];
   },
 
   /**
-   * Loads cached designs from storage
+   * Loads cached designs from storage for the current (or specified) total URL
    */
-  async loadDesigns() {
-    const key = this.getStorageKey();
+  async loadDesigns(url) {
+    const key = this.getStorageKey(url);
+    const legacyKey = this.getLegacyStorageKey(url);
+    const legacyPathKeys = this.getLegacyPathStorageKeys();
+    const queryKeys = [key, legacyKey, ...legacyPathKeys];
 
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const result = await chrome.storage.local.get([key]);
-        this.cachedList = result[key] || [];
+        const result = await chrome.storage.local.get(queryKeys);
+        if (Array.isArray(result[key]) && result[key].length > 0) {
+          this.cachedList = result[key];
+        } else if (Array.isArray(result[legacyKey]) && result[legacyKey].length > 0) {
+          this.cachedList = result[legacyKey];
+        } else {
+          const found = legacyPathKeys.find((k) => Array.isArray(result[k]) && result[k].length > 0);
+          this.cachedList = found ? result[found] : [];
+        }
       } else {
-        const raw = localStorage.getItem(key);
+        const raw =
+          localStorage.getItem(key) ||
+          localStorage.getItem(legacyKey) ||
+          legacyPathKeys.map((k) => localStorage.getItem(k)).find(Boolean);
         this.cachedList = raw ? JSON.parse(raw) : [];
       }
     } catch (e) {
-      console.warn('[Designify Cache] Failed to load from chrome.storage:', e);
+      console.warn('[Likeable Cache] Failed to load from chrome.storage:', e);
       try {
-        const raw = localStorage.getItem(key);
+        const raw =
+          localStorage.getItem(key) ||
+          localStorage.getItem(legacyKey) ||
+          legacyPathKeys.map((k) => localStorage.getItem(k)).find(Boolean);
         this.cachedList = raw ? JSON.parse(raw) : [];
       } catch {}
+    }
+
+    if (this.cachedList.length > 0 && !this.currentActiveId) {
+      this.currentActiveId = this.cachedList[0].id;
     }
 
     return this.cachedList;
@@ -43,6 +95,7 @@ window.DesignifyCache = {
    */
   async saveDesign(redesign) {
     const key = this.getStorageKey();
+    const totalUrl = this.getTotalUrl();
 
     const entry = {
       id: redesign.id || `des_${Date.now()}`,
@@ -53,6 +106,7 @@ window.DesignifyCache = {
       engineUsed: redesign.engineUsed || 'claude',
       timestamp: Date.now(),
       timeFormatted: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      url: totalUrl,
       html: redesign.html,
       css: redesign.css
     };
@@ -77,10 +131,10 @@ window.DesignifyCache = {
       }
       localStorage.setItem(key, JSON.stringify(this.cachedList));
     } catch (e) {
-      console.warn('[Designify Cache] Save error:', e);
+      console.warn('[Likeable Cache] Save error:', e);
     }
 
-    console.log(`[Designify Cache] Saved design "${entry.themeName}" (${entry.id}). Total cached: ${this.cachedList.length}`);
+    console.log(`[Likeable Cache] Saved design "${entry.themeName}" (${entry.id}) for route "${totalUrl}". Total cached: ${this.cachedList.length}`);
     return entry;
   },
 
@@ -113,7 +167,7 @@ window.DesignifyCache = {
   },
 
   /**
-   * Clears all cached designs for the current page
+   * Clears all cached designs for the current total URL
    */
   async clearAll() {
     const key = this.getStorageKey();
@@ -128,3 +182,4 @@ window.DesignifyCache = {
     } catch {}
   }
 };
+window.LikeableCache = window.DesignifyCache;

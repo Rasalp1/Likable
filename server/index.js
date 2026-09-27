@@ -92,12 +92,33 @@ export function validatePayload(payload) {
     }
   }
 
+  let customPreset = null;
+  if (payload.customPreset !== undefined && payload.customPreset !== null) {
+    if (!isPlainObject(payload.customPreset)) {
+      throw httpError(400, 'customPreset must be an object.');
+    }
+    customPreset = {
+      id: assertString(payload.customPreset.id, 'customPreset.id', 128),
+      name: assertString(payload.customPreset.name, 'customPreset.name', 128),
+      description: assertString(payload.customPreset.description, 'customPreset.description', 1_000),
+      originUrl: assertString(payload.customPreset.originUrl, 'customPreset.originUrl', 2_048),
+      palette: isPlainObject(payload.customPreset.palette) ? payload.customPreset.palette : {},
+      layout: isPlainObject(payload.customPreset.layout) ? payload.customPreset.layout : {},
+      geometry: isPlainObject(payload.customPreset.geometry) ? payload.customPreset.geometry : {},
+      padding: isPlainObject(payload.customPreset.padding) ? payload.customPreset.padding : {},
+      elevation: isPlainObject(payload.customPreset.elevation) ? payload.customPreset.elevation : {},
+      typography: isPlainObject(payload.customPreset.typography) ? payload.customPreset.typography : {},
+      mandate: assertString(payload.customPreset.mandate, 'customPreset.mandate', 10_000)
+    };
+  }
+
   const screenshot = decodeScreenshot(payload.screenshotBase64);
   return {
     url: assertString(payload.url, 'url', 4_096),
     title: assertString(payload.title, 'title', 500),
     metaDescription: assertString(payload.metaDescription, 'metaDescription', 2_000),
-    theme: assertString(payload.theme || 'linear', 'theme', 64),
+    theme: assertString(payload.theme || 'linear', 'theme', 128),
+    customPreset,
     customPrompt: assertString(payload.customPrompt, 'customPrompt', 4_000),
     domTree,
     screenshot,
@@ -106,10 +127,11 @@ export function validatePayload(payload) {
 }
 
 export function loadBridgeToken({ env = process.env, tokenPath = TOKEN_PATH } = {}) {
-  const fromEnvironment = env.DESIGNIFY_BRIDGE_TOKEN?.trim();
+  const fromEnvironment = env.LIKEABLE_BRIDGE_TOKEN?.trim() || env.DESIGNIFY_BRIDGE_TOKEN?.trim();
   if (fromEnvironment) {
     if (fromEnvironment.length < 32) {
-      throw new Error('DESIGNIFY_BRIDGE_TOKEN must be at least 32 characters long.');
+      const varName = env.LIKEABLE_BRIDGE_TOKEN ? 'LIKEABLE_BRIDGE_TOKEN' : 'DESIGNIFY_BRIDGE_TOKEN';
+      throw new Error(`${varName} must be at least 32 characters long.`);
     }
     return fromEnvironment;
   }
@@ -138,7 +160,7 @@ function requestToken(req) {
   if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
     return authorization.slice('Bearer '.length).trim();
   }
-  const headerToken = req.headers['x-designify-token'];
+  const headerToken = req.headers['x-likeable-token'] || req.headers['x-designify-token'];
   return typeof headerToken === 'string' ? headerToken.trim() : '';
 }
 
@@ -160,7 +182,7 @@ function setCorsHeaders(req, res) {
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Designify-Token');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Likeable-Token, X-Designify-Token');
 }
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
@@ -173,7 +195,7 @@ function sendJson(res, statusCode, payload, extraHeaders = {}) {
 }
 
 function sendUnauthorized(res) {
-  sendJson(res, 401, { error: 'Unauthorized. Configure the Designify bridge token in the extension.' }, {
+  sendJson(res, 401, { error: 'Unauthorized. Configure the Likeable bridge token in the extension.' }, {
     'WWW-Authenticate': 'Bearer'
   });
 }
@@ -363,7 +385,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
     if (url.pathname === '/api/health' && req.method === 'GET') {
       const response = {
         status: 'ok',
-        service: 'designify-bridge',
+        service: 'likeable-bridge',
         authenticated: authorized,
         requiresAuth: true
       };
@@ -387,9 +409,19 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       sendJson(res, 200, {
         themes: Object.entries(THEME_PRESETS).map(([key, value]) => ({
           key,
+          id: value.id || key,
+          label: value.label || value.name,
           name: value.name,
+          isCustom: false,
+          originUrl: value.originUrl || '',
           description: value.description,
-          palette: value.palette
+          palette: value.palette,
+          layout: value.layout,
+          geometry: value.geometry,
+          padding: value.padding,
+          elevation: value.elevation,
+          typography: value.typography,
+          mandate: value.mandate
         }))
       });
       return;
@@ -418,7 +450,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       const payload = validatePayload(rawPayload);
 
       if (payload.screenshot) {
-        tempScreenshotPath = path.join(os.tmpdir(), `designify_snap_${crypto.randomUUID()}.bin`);
+        tempScreenshotPath = path.join(os.tmpdir(), `likeable_snap_${crypto.randomUUID()}.bin`);
         fs.writeFileSync(tempScreenshotPath, payload.screenshot, { mode: 0o600, flag: 'wx' });
       }
 
@@ -427,6 +459,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
         title: payload.title,
         metaDescription: payload.metaDescription,
         themeKey: payload.theme,
+        customPreset: payload.customPreset,
         customPrompt: payload.customPrompt,
         domTree: payload.domTree,
         screenshotPath: tempScreenshotPath
@@ -456,7 +489,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       });
     } catch (error) {
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
-      if (statusCode >= 500) console.error('[Designify Bridge] Request failed:', error.message);
+      if (statusCode >= 500) console.error('[Likeable Bridge] Request failed:', error.message);
       sendJson(res, statusCode, { error: statusCode >= 500 ? 'Redesign request failed.' : error.message });
     } finally {
       activeRequests -= 1;
@@ -471,20 +504,17 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
 }
 
 export function startServer({ port = positiveInteger(process.env.PORT, DEFAULT_PORT) } = {}) {
-  const tokenFileExisted = fs.existsSync(TOKEN_PATH);
   const token = loadBridgeToken();
   const server = createServer({ token });
 
   server.on('error', (error) => {
-    console.error(`[Designify Bridge] Server error: ${error.message}`);
+    console.error(`[Likeable Bridge] Server error: ${error.message}`);
     process.exitCode = 1;
   });
   server.listen(port, HOST, () => {
-    console.log(`Designify Bridge Server listening on http://${HOST}:${port}`);
+    console.log(`Likeable Bridge Server listening on http://${HOST}:${port}`);
+    console.log(`Bridge token (copy into the extension popup): ${token}`);
     console.log(`Bridge token file: ${TOKEN_PATH}`);
-    if (!tokenFileExisted && !process.env.DESIGNIFY_BRIDGE_TOKEN) {
-      console.log(`Bridge token (copy into the extension popup): ${token}`);
-    }
     console.log(`Claude CLI: ${claudeStatus()}`);
     console.log(`Codex CLI: ${codexStatus()}`);
   });

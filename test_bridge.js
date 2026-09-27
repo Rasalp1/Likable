@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import { bridgeHeaders, getBridgeToken } from './test_support.js';
 
 /**
- * Test script for Designify Bridge Server
+ * Test script for Likeable Bridge Server
  * Tests the /api/health and /api/redesign endpoints against local Claude Code CLI
  */
 
 async function runTest() {
-  console.log('Testing Designify Bridge Server...\n');
+  console.log('Testing Likeable Bridge Server...\n');
 
   if (getBridgeToken().length < 32) {
-    throw new Error('No bridge token found. Start the server first or set DESIGNIFY_BRIDGE_TOKEN.');
+    throw new Error('No bridge token found. Start the server first or set LIKEABLE_BRIDGE_TOKEN.');
   }
 
   // 1. Health check

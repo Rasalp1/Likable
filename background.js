@@ -1,22 +1,29 @@
 /**
- * Designify - Background Service Worker
+ * Likeable - Background Service Worker
  * Handles screenshot capture, bridge health checks, and tab messaging
  */
 
 const BRIDGE_URL = 'http://127.0.0.1:3030';
-const BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+const BRIDGE_TOKEN_KEY = 'likeableBridgeToken';
+const LEGACY_BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
 
 async function getBridgeToken() {
   try {
-    const result = await chrome.storage.local.get(BRIDGE_TOKEN_KEY);
-    return typeof result[BRIDGE_TOKEN_KEY] === 'string' ? result[BRIDGE_TOKEN_KEY].trim() : '';
+    const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, LEGACY_BRIDGE_TOKEN_KEY]);
+    const token = result[BRIDGE_TOKEN_KEY] || result[LEGACY_BRIDGE_TOKEN_KEY];
+    return typeof token === 'string' ? token.trim() : '';
   } catch {
     return '';
   }
 }
 
 function authHeaders(token, headers = {}) {
-  return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+  return token ? {
+    ...headers,
+    Authorization: `Bearer ${token}`,
+    'X-Likeable-Token': token,
+    'X-Designify-Token': token
+  } : headers;
 }
 
 // Handle runtime messages from content script or popup
@@ -24,7 +31,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'capture_visible_tab') {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
       if (chrome.runtime.lastError) {
-        console.error('[Designify Background] Screenshot error:', chrome.runtime.lastError.message);
+        console.error('[Likeable Background] Screenshot error:', chrome.runtime.lastError.message);
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
       } else {
         sendResponse({ success: true, dataUrl });
@@ -64,50 +71,76 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.action === 'inject_designify') {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-      if (!tabs || !tabs[0]) {
-        sendResponse({ success: false, error: 'No active tab found.' });
-        return;
-      }
-      const tab = tabs[0];
-      const tabId = tab.id;
-      const url = tab.url || '';
-
-      // Chrome blocks content scripts on internal browser URLs
-      if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('edge://') || url.startsWith('about:')) {
-        sendResponse({
-          success: false,
-          error: 'Chrome security restricts extensions on system pages (chrome://). Please switch to a regular website (e.g. Wikipedia, Reddit, or localhost) to use Designify!'
-        });
-        return;
-      }
-
+  if (message.action === 'get_hud_visibility' || message.action === 'set_hud_visibility') {
+    (async () => {
       try {
-        // 1. Inject stylesheet
-        await chrome.scripting.insertCSS({
-          target: { tabId },
-          files: ['content/hud.css']
+        const tab = message.tabId ? await chrome.tabs.get(message.tabId) : null;
+        if (!tab?.id || !/^https?:/.test(tab.url || '')) {
+          throw new Error('Page controls are available on regular websites. Open a website and try again.');
+        }
+        const target = { tabId: tab.id };
+        let [state] = await chrome.scripting.executeScript({
+          target,
+          func: () => {
+            const hud = window.LikeableHUD || window.DesignifyHUD;
+            return { mounted: !!hud, enabled: !!hud?.enabled };
+          }
         });
-
-        // 2. Inject scripts in strict dependency order
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          files: [
-            'content/ingester.js',
-            'content/cache.js',
-            'content/overlay.js',
-            'content/hud.js',
-            'content/content.js'
-          ]
+        if (!state?.result?.mounted && (message.action === 'get_hud_visibility' || message.enabled !== false)) {
+          try {
+            await chrome.scripting.insertCSS({ target, files: ['content/hud.css'] });
+            await chrome.scripting.executeScript({
+              target,
+              files: ['content/ingester.js', 'content/cache.js', 'content/overlay.js', 'content/hud.js', 'content/content.js']
+            });
+            [state] = await chrome.scripting.executeScript({
+              target,
+              func: async () => {
+                const coord = window.LikeableCoordinator || window.DesignifyCoordinator;
+                if (coord) await coord.init();
+                const hud = window.LikeableHUD || window.DesignifyHUD;
+                return { mounted: !!hud, enabled: !!hud?.enabled };
+              }
+            });
+          } catch {}
+        }
+        if (message.action === 'get_hud_visibility') {
+          sendResponse({ success: true, enabled: state?.result?.enabled !== false });
+          return;
+        }
+        const [result] = await chrome.scripting.executeScript({
+          target,
+          func: async (enabled) => {
+            const hud = window.LikeableHUD || window.DesignifyHUD;
+            if (!hud) return false;
+            const coord = window.LikeableCoordinator || window.DesignifyCoordinator;
+            if (coord) await coord.init();
+            hud.setEnabled(enabled);
+            return hud.enabled;
+          },
+          args: [!!message.enabled]
         });
-
-        sendResponse({ success: true });
-      } catch (err) {
-        console.error('[Designify] Failed to inject scripts into tab:', err);
-        sendResponse({ success: false, error: err.message });
+        sendResponse({ success: true, enabled: !!result?.result });
+      } catch (error) {
+        sendResponse({ success: false, error: error.message });
       }
-    });
+    })();
     return true;
   }
+});
+
+chrome.runtime.onInstalled?.addListener(async () => {
+  try {
+    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+    for (const tab of tabs) {
+      if (!tab.id) continue;
+      try {
+        await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content/hud.css'] });
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content/ingester.js', 'content/cache.js', 'content/overlay.js', 'content/hud.js', 'content/content.js']
+        });
+      } catch {}
+    }
+  } catch {}
 });

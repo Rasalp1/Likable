@@ -1,11 +1,14 @@
 /**
- * Designify - Floating Glassmorphic In-Page Control HUD
+ * Likeable - Floating Glassmorphic In-Page Control HUD
  */
 
-window.DesignifyHUD = {
+window.LikeableHUD = window.DesignifyHUD = window.LikeableHUD || window.DesignifyHUD || {
   hudContainer: null,
   miniFab: null,
-  isMiniDropdownOpen: false,
+  enabled: true,
+  isOpen: true,
+  customPrompt: '',
+  _initPromise: null,
   _toastTimeout: null,
   selectedTheme: 'linear',
   selectedEngine: 'claude',
@@ -18,11 +21,331 @@ window.DesignifyHUD = {
   progressSubtext: '',
   progressInterval: null,
 
-  presets: [
-    { id: 'linear', label: 'Linear' },
-    { id: 'apple', label: 'Apple' },
-    { id: 'lovable', label: 'Lovable' }
+  defaultPresets: [
+    {
+      id: 'linear',
+      label: 'Linear',
+      name: 'Linear',
+      isCustom: false,
+      originUrl: 'https://linear.app',
+      createdAt: 0,
+      description: 'Extracted from Linear (linear.app): dark canvas, 9px card radii, Inter Variable typography.',
+      palette: {
+        background: '#08090a',
+        surface: 'rgb(15, 16, 17)',
+        surfaceHover: 'rgba(255, 255, 255, 0.09)',
+        border: '0.5px solid rgba(255, 255, 255, 0.08)',
+        textPrimary: 'rgb(247, 248, 248)',
+        textSecondary: 'rgb(138, 143, 152)',
+        accent: '#6366f1',
+        accentGlow: 'rgba(99, 102, 241, 0.2)'
+      },
+      layout: {
+        containerMaxWidth: '1360px',
+        layoutStructure: 'bento-grid',
+        sectionSpacingY: '128px'
+      },
+      geometry: {
+        cardRadius: '9px',
+        buttonRadius: '8px'
+      },
+      padding: {
+        cardPadding: '8px 10px',
+        buttonPadding: '4px 0px',
+        sectionSpacingY: '128px'
+      },
+      elevation: {
+        cardShadow: 'rgb(35, 37, 42) 0px 0px 0px 1px inset',
+        cardBorder: '0.5px solid rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(20px)'
+      },
+      typography: {
+        headingFont: 'Inter Variable',
+        bodyFont: 'Inter Variable',
+        headingWeight: '510',
+        headingTracking: '-1.408px'
+      },
+      mandate: `
+### 🚨 MANDATORY LINEAR DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
+The user explicitly selected the **Linear** aesthetic preset (extracted from https://linear.app).
+You MUST faithfully replicate this exact design language across all components:
+1. **Dark Mode Atmosphere & Canvas**:
+   - Canvas Background: \`#08090a\`.
+   - Card Surfaces: \`rgb(15, 16, 17)\` with border \`0.5px solid rgba(255, 255, 255, 0.08)\`.
+   - Text Hierarchy: High-contrast primary \`rgb(247, 248, 248)\`, muted secondary \`rgb(138, 143, 152)\`.
+2. **Layout Rhythm & Spatial Structure**:
+   - Container Max-Width: \`1360px\` centered with auto margins.
+   - Section Vertical Spacing: \`128px\` padding between major sections.
+   - Layout Paradigm: \`bento-grid\` with consistent grid gaps (20px to 32px).
+3. **Card Geometry & Elevation**:
+   - Corner Radius: \`9px\`.
+   - Internal Card Padding: \`8px 10px\`.
+   - Shadows: \`rgb(35, 37, 42) 0px 0px 0px 1px inset\`.
+   - Frosted Glass: \`backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);\`.
+4. **Typography & Tracking**:
+   - Headings: \`font-family: "Inter Variable", -apple-system, sans-serif;\`, \`font-weight: 510\`, \`letter-spacing: -1.408px\`, \`line-height: 64px\`.
+   - Body Copy: \`font-family: "Inter Variable", -apple-system, sans-serif;\`, \`line-height: 24px\`.
+5. **Action Buttons & Form Controls**:
+   - Primary Action Button: \`background: #6366f1 !important; border-radius: 8px !important; padding: 4px 0px !important; font-weight: 510 !important;\`
+   - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
+6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
+   - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
+   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Linear (linear.app). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Restrained physical depth: Use precise hairline borders (\`0.5px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgb(35, 37, 42) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
+`
+    },
+    {
+      id: 'apple',
+      label: 'Apple',
+      name: 'Apple',
+      isCustom: false,
+      originUrl: 'https://apple.com',
+      createdAt: 0,
+      description: 'Bespoke, hyper-clean design inspired by Apple. Generous whitespace, refined human sans-serif typography, subtle frosted glass headers, natural multi-layered drop shadows, and purposeful primary accents.',
+      palette: {
+        background: '#fafafa',
+        surface: '#ffffff',
+        surfaceHover: '#f5f5f7',
+        border: 'rgba(0, 0, 0, 0.06)',
+        textPrimary: '#1d1d1f',
+        textSecondary: '#86868b',
+        accent: '#0071e3',
+        accentGlow: 'rgba(0, 113, 227, 0.12)'
+      },
+      layout: {
+        containerMaxWidth: '1280px',
+        sectionSpacingY: '96px',
+        layoutStructure: 'structured-sections'
+      },
+      geometry: {
+        cardRadius: '22px',
+        buttonRadius: '980px'
+      },
+      padding: {
+        cardPadding: '36px 44px',
+        buttonPadding: '11px 24px',
+        sectionSpacingY: '96px'
+      },
+      elevation: {
+        cardShadow: '0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
+        cardBorder: '1px solid rgba(0, 0, 0, 0.06)',
+        backdropFilter: 'saturate(180%) blur(20px)'
+      },
+      typography: {
+        headingFont: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+        bodyFont: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
+        headingWeight: '700',
+        headingTracking: '-0.025em'
+      },
+      mandate: `
+### 🚨 MANDATORY APPLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
+The user explicitly selected the **Apple** aesthetic preset (inspired by apple.com, macOS Sequoia, and Apple Human Interface Guidelines).
+You MUST faithfully replicate Apple's iconic design language across all components:
+1. **Light Mode Atmosphere & Canvas**:
+   - Canvas Background: \`#fafafa\` (or \`#f5f5f7\`). Under NO circumstances produce a dark mode or black interface when Apple is selected!
+   - Card Surfaces: Crisp white (\`#ffffff\`) with border \`1px solid rgba(0, 0, 0, 0.06)\`.
+   - Text Hierarchy: Deep charcoal primary \`#1d1d1f\`, muted secondary \`#86868b\`.
+2. **Apple Frosted Glass Navigation Header**:
+   - Top navigation bar MUST feature Apple's signature frosted glass material:
+     \`background: rgba(255, 255, 255, 0.8) !important; backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.08);\`
+   - Clean, spaced navigation items with subtle hover transitions.
+3. **Signature Apple Blue Pill Buttons & Actions**:
+   - Primary CTA buttons MUST be iconic Apple Blue pill buttons:
+     \`background: #0071e3 !important; color: #ffffff !important; border-radius: 980px !important; padding: 11px 24px !important; font-size: 14px !important; font-weight: 500 !important; border: none !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);\`
+     Hover state: \`background: #0077ed !important; transform: scale(1.02);\`.
+   - Secondary actions: Subtle light gray pill buttons (\`background: rgba(0, 0, 0, 0.05); color: #1d1d1f; border-radius: 980px; padding: 11px 24px; border: none;\`) or elegant text links with blue chevron \`›\`.
+   - Inputs & Search: Rounded 12px or pill search inputs with clean white fill, subtle \`#d2d2d7\` border, and Apple Blue focus glow (\`box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15); border-color: #0071e3;\`).
+6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
+   - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
+   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Apple. Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Restrained physical depth: Use pristine whitespace, subtle hairline borders (\`1px solid rgba(0, 0, 0, 0.06)\`), and ultra-soft diffuse drop shadows rather than tacky glowing outlines or AI slop gradients.
+`
+    },
+    {
+      id: 'lovable',
+      label: 'Lovable',
+      name: 'Lovable',
+      isCustom: false,
+      originUrl: 'https://lovable.dev',
+      createdAt: 0,
+      description: 'Extracted from Lovable (lovable.dev): dark canvas, 12px card radii, Camera Plain Variable typography.',
+      palette: {
+        background: '#0d0e12',
+        surface: 'rgb(28, 28, 28)',
+        surfaceHover: 'rgba(255, 255, 255, 0.09)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        textPrimary: 'rgb(97, 97, 97)',
+        textSecondary: 'oklch(0.5 0.001 107)',
+        accent: '#6366f1',
+        accentGlow: 'rgba(99, 102, 241, 0.2)'
+      },
+      layout: {
+        containerMaxWidth: '1480px',
+        layoutStructure: 'bento-grid',
+        sectionSpacingY: '160px'
+      },
+      geometry: {
+        cardRadius: '12px',
+        buttonRadius: '16px'
+      },
+      padding: {
+        cardPadding: '72px 0px',
+        buttonPadding: '6px 10px',
+        sectionSpacingY: '160px'
+      },
+      elevation: {
+        cardShadow: 'rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset',
+        cardBorder: '1px solid rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'none'
+      },
+      typography: {
+        headingFont: 'Camera Plain Variable',
+        bodyFont: 'Camera Plain Variable',
+        headingWeight: '400',
+        headingTracking: '-0.025em'
+      },
+      mandate: `
+### 🚨 MANDATORY LOVABLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
+The user explicitly selected the **Lovable** aesthetic preset (extracted from https://lovable.dev).
+You MUST faithfully replicate this exact design language across all components:
+1. **Dark Mode Atmosphere & Canvas**:
+   - Canvas Background: \`#0d0e12\`.
+   - Card Surfaces: \`rgb(28, 28, 28)\` with border \`1px solid rgba(255, 255, 255, 0.08)\`.
+   - Text Hierarchy: High-contrast primary \`rgb(97, 97, 97)\`, muted secondary \`oklch(0.5 0.001 107)\`.
+2. **Layout Rhythm & Spatial Structure**:
+   - Container Max-Width: \`1480px\` centered with auto margins.
+   - Section Vertical Spacing: \`160px\` padding between major sections.
+   - Layout Paradigm: \`bento-grid\` with consistent grid gaps (20px to 32px).
+3. **Card Geometry & Elevation**:
+   - Corner Radius: \`12px\`.
+   - Internal Card Padding: \`72px 0px\`.
+   - Shadows: \`rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset\`.
+4. **Typography & Tracking**:
+   - Headings: \`font-family: "Camera Plain Variable", -apple-system, sans-serif;\`, \`font-weight: 400\`, \`letter-spacing: -0.025em\`, \`line-height: 28px\`.
+   - Body Copy: \`font-family: "Camera Plain Variable", -apple-system, sans-serif;\`, \`line-height: 24px\`.
+5. **Action Buttons & Form Controls**:
+   - Primary Action Button: \`background: #6366f1 !important; border-radius: 16px !important; padding: 6px 10px !important; font-weight: 480 !important;\`
+   - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
+6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
+   - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
+   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Lovable (lovable.dev). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Restrained physical depth: Use precise hairline borders (\`1px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
+`
+    }
   ],
+  customPresets: [],
+  presets: [],
+
+  rebuildPresets() {
+    this.presets = [...this.defaultPresets, ...this.customPresets];
+  },
+
+  async loadCustomPresets() {
+    const key = 'designifyCustomPresets';
+    let loaded = [];
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        const res = await chrome.storage.local.get([key]);
+        loaded = Array.isArray(res[key]) ? res[key] : [];
+      } else {
+        const raw = localStorage.getItem(key);
+        loaded = raw ? JSON.parse(raw) : [];
+      }
+    } catch (e) {
+      console.warn('[Likeable HUD] Failed to load custom presets from storage:', e);
+      try {
+        const raw = localStorage.getItem(key);
+        loaded = raw ? JSON.parse(raw) : [];
+      } catch {}
+    }
+
+    // Automatically remove custom presets that duplicate default presets (Linear, Lovable)
+    const cleaned = loaded.filter((p) => {
+      const name = (p.name || p.label || '').toLowerCase().trim();
+      const origin = (p.originUrl || p.url || '').toLowerCase();
+      const id = (p.id || '').toLowerCase();
+      const isLinear = name === 'linear' || id.startsWith('preset-linear') || origin.includes('linear.app');
+      const isLovable = name === 'lovable' || id.startsWith('preset-lovable') || origin.includes('lovable.dev');
+      return !isLinear && !isLovable;
+    });
+
+    if (cleaned.length !== loaded.length) {
+      loaded = cleaned;
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          await chrome.storage.local.set({ [key]: loaded });
+        } else {
+          localStorage.setItem(key, JSON.stringify(loaded));
+        }
+      } catch (e) {}
+    }
+
+    if (this.selectedTheme && (this.selectedTheme.startsWith('preset-linear') || this.selectedTheme.toLowerCase() === 'linear')) {
+      this.selectedTheme = 'linear';
+    } else if (this.selectedTheme && (this.selectedTheme.startsWith('preset-lovable') || this.selectedTheme.toLowerCase() === 'lovable')) {
+      this.selectedTheme = 'lovable';
+    }
+
+    this.customPresets = loaded;
+    this.rebuildPresets();
+    return loaded;
+  },
+
+  async saveCustomPreset(preset) {
+    if (!preset || !preset.id) return;
+    const name = (preset.name || preset.label || '').toLowerCase().trim();
+    const origin = (preset.originUrl || preset.url || '').toLowerCase();
+    if (name === 'linear' || name === 'lovable' || origin.includes('linear.app') || origin.includes('lovable.dev')) {
+      return;
+    }
+    const normalizeUrl = (u) => String(u || '').trim().toLowerCase().replace(/\/+$/, '');
+    const presetTarget = normalizeUrl(preset.originUrl || preset.url);
+
+    this.customPresets = this.customPresets.filter((p) => {
+      const pUrl = normalizeUrl(p.originUrl || p.url);
+      return p.id !== preset.id && pUrl !== presetTarget;
+    });
+    this.customPresets.unshift(preset);
+    if (this.customPresets.length > 10) {
+      this.customPresets = this.customPresets.slice(0, 10);
+    }
+    this.rebuildPresets();
+
+    const key = 'designifyCustomPresets';
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        await chrome.storage.local.set({ [key]: this.customPresets });
+      } else {
+        localStorage.setItem(key, JSON.stringify(this.customPresets));
+      }
+    } catch (e) {
+      try {
+        localStorage.setItem(key, JSON.stringify(this.customPresets));
+      } catch {}
+    }
+  },
+
+  async deleteCustomPreset(presetId) {
+    this.customPresets = this.customPresets.filter((p) => p.id !== presetId);
+    this.rebuildPresets();
+    if (this.selectedTheme === presetId) {
+      this.selectedTheme = 'linear';
+    }
+
+    const key = 'designifyCustomPresets';
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        await chrome.storage.local.set({ [key]: this.customPresets });
+      } else {
+        localStorage.setItem(key, JSON.stringify(this.customPresets));
+      }
+    } catch (e) {
+      try {
+        localStorage.setItem(key, JSON.stringify(this.customPresets));
+      } catch {}
+    }
+    this.render();
+  },
 
   escapeHtml(value) {
     return String(value ?? '')
@@ -34,55 +357,40 @@ window.DesignifyHUD = {
   },
 
   show() {
-    if (this.hudContainer) {
-      this.hudContainer.style.display = 'block';
-    }
-    if (this.miniFab) {
-      this.miniFab.style.display = 'none';
-      this.closeMiniDropdown();
-    }
+    this.enabled = true;
+    this.isOpen = true;
+    if (this.hudContainer) this.hudContainer.style.display = 'block';
+    if (this.miniFab) this.miniFab.style.display = 'flex';
+    this.syncLauncher();
   },
 
   minimize() {
-    if (this.hudContainer) {
-      this.hudContainer.style.display = 'none';
-    }
-    if (this.miniFab) {
-      this.miniFab.style.display = 'flex';
-      this.closeMiniDropdown();
-    }
+    this.isOpen = false;
+    if (this.hudContainer) this.hudContainer.style.display = 'none';
+    if (this.miniFab) this.miniFab.style.display = this.enabled ? 'flex' : 'none';
+    this.syncLauncher();
   },
 
-  toggleMiniDropdown() {
-    if (this.isMiniDropdownOpen) {
-      this.closeMiniDropdown();
+  setEnabled(enabled) {
+    this.enabled = enabled;
+    if (enabled) {
+      this.show();
     } else {
-      this.openMiniDropdown();
+      this.isOpen = false;
+      if (this.hudContainer) this.hudContainer.style.display = 'none';
+      if (this.miniFab) this.miniFab.style.display = 'none';
+      const toast = document.getElementById('designify-hud-toast');
+      if (toast) toast.className = '';
+      this.syncLauncher();
     }
   },
 
-  openMiniDropdown() {
-    this.isMiniDropdownOpen = true;
-    const dropdown = this.miniFab?.querySelector('#designify-mini-dropdown');
-    const fabBtn = this.miniFab?.querySelector('#designify-mini-fab-btn');
-    if (dropdown) {
-      dropdown.classList.add('open');
-    }
-    if (fabBtn) {
-      fabBtn.classList.add('active');
-    }
-  },
-
-  closeMiniDropdown() {
-    this.isMiniDropdownOpen = false;
-    const dropdown = this.miniFab?.querySelector('#designify-mini-dropdown');
-    const fabBtn = this.miniFab?.querySelector('#designify-mini-fab-btn');
-    if (dropdown) {
-      dropdown.classList.remove('open');
-    }
-    if (fabBtn) {
-      fabBtn.classList.remove('active');
-    }
+  syncLauncher() {
+    const button = this.miniFab?.querySelector('#designify-mini-fab-btn');
+    if (!button) return;
+    button.classList.toggle('active', this.isOpen);
+    button.setAttribute('aria-expanded', String(this.isOpen));
+    button.setAttribute('aria-label', this.isOpen ? 'Close Likeable controls' : 'Open Likeable controls');
   },
 
   showToast(message) {
@@ -94,59 +402,89 @@ window.DesignifyHUD = {
     }
 
     toast.innerHTML = `
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#248044" stroke-width="1.6">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
-      <span>${message}</span>
+      <span>${this.escapeHtml(message)}</span>
     `;
     toast.className = 'show';
 
     clearTimeout(this._toastTimeout);
     this._toastTimeout = setTimeout(() => {
       toast.className = '';
-    }, 2200);
+    }, 2400);
   },
 
   async handleCopyWebsite(copyBtn) {
-    if (copyBtn.dataset.copying === 'true') return;
-    copyBtn.dataset.copying = 'true';
+    if (copyBtn && copyBtn.dataset.copying === 'true') return;
+    if (copyBtn) copyBtn.dataset.copying = 'true';
 
     try {
+      // 1. Copy website code to clipboard
       const { success, isRedesign } = await this.copyWebsiteCode();
-      const textEl = copyBtn.querySelector('.designify-dropdown-text');
-      const iconEl = copyBtn.querySelector('.designify-dropdown-icon');
-      const originalText = textEl ? textEl.textContent : 'Copy this website';
+
+      // 2. Extract design DNA (theme, layout, paddings, structures, radii, typography) and add to presets
+      let extractedPreset = null;
+      if (window.DesignifyIngester && typeof window.DesignifyIngester.extractDesignPreset === 'function') {
+        try {
+          extractedPreset = window.DesignifyIngester.extractDesignPreset();
+          if (extractedPreset) {
+            const rawName = (extractedPreset.name || '').toLowerCase();
+            if (rawName === 'linear' || rawName === 'lovable') {
+              this.selectedTheme = rawName;
+            } else {
+              await this.saveCustomPreset(extractedPreset);
+              this.selectedTheme = extractedPreset.id;
+            }
+            this.render();
+          }
+        } catch (extractErr) {
+          console.warn('[Likeable] Failed to extract design preset:', extractErr);
+        }
+      }
+
+      const textEl = copyBtn?.querySelector('.designify-dropdown-text, .designify-header-btn-text') || copyBtn;
+      const iconEl = copyBtn?.querySelector('.designify-dropdown-icon');
+      const originalText = textEl && textEl !== copyBtn ? textEl.textContent : (copyBtn?.textContent || 'Copy this website');
 
       if (success) {
-        copyBtn.classList.add('success');
-        if (textEl) textEl.textContent = 'Copied to clipboard!';
+        if (copyBtn) copyBtn.classList.add('success');
+        const presetName = extractedPreset?.name || 'Website';
+        if (textEl && textEl !== copyBtn) {
+          textEl.textContent = 'Copied & saved preset!';
+        }
         if (iconEl) {
           iconEl.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
-          iconEl.setAttribute('stroke', '#34d399');
+          iconEl.setAttribute('stroke', '#248044');
         }
 
-        this.showToast(isRedesign ? 'Redesigned website copied! ✨' : 'Website code copied! ✨');
+        const toastMsg = extractedPreset
+          ? `Website copied & added "${presetName}" to presets!`
+          : (isRedesign ? 'Redesigned website copied' : 'Website code copied');
+        this.showToast(toastMsg);
 
         setTimeout(() => {
-          copyBtn.classList.remove('success');
-          if (textEl) textEl.textContent = originalText;
-          if (iconEl) {
-            iconEl.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
-            iconEl.removeAttribute('stroke');
+          if (copyBtn) {
+            copyBtn.classList.remove('success');
+            if (textEl && textEl !== copyBtn) textEl.textContent = originalText;
+            if (iconEl) {
+              iconEl.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+              iconEl.removeAttribute('stroke');
+            }
+            copyBtn.dataset.copying = 'false';
           }
-          copyBtn.dataset.copying = 'false';
-          this.closeMiniDropdown();
-        }, 1400);
+
+        }, 1500);
       } else {
-        if (textEl) textEl.textContent = 'Copy failed';
+        if (textEl && textEl !== copyBtn) textEl.textContent = 'Copy failed';
         setTimeout(() => {
-          if (textEl) textEl.textContent = originalText;
-          copyBtn.dataset.copying = 'false';
+          if (textEl && textEl !== copyBtn) textEl.textContent = originalText;
+          if (copyBtn) copyBtn.dataset.copying = 'false';
         }, 1400);
       }
     } catch (err) {
-      console.error('[Designify] Failed to copy website:', err);
-      copyBtn.dataset.copying = 'false';
+      console.error('[Likeable] Failed to copy website:', err);
+      if (copyBtn) copyBtn.dataset.copying = 'false';
     }
   },
 
@@ -162,14 +500,14 @@ window.DesignifyHUD = {
       window.DesignifyOverlay.hostElement.style.display !== 'none'
     ) {
       const { html, css, themeName, summary } = window.DesignifyOverlay.activeRedesign;
-      const safeThemeName = this.escapeHtml(themeName || 'Designify Redesign');
+      const safeThemeName = this.escapeHtml(themeName || 'Likeable Redesign');
       const safeSummary = this.escapeHtml(summary || '');
       codeToCopy = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Designify Redesign - ${safeThemeName}</title>
+  <title>Likeable Redesign - ${safeThemeName}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -189,14 +527,14 @@ window.DesignifyHUD = {
   </style>
 </head>
 <body>
-  <!-- Generated by Designify AI Redesign System -->
+  <!-- Generated by Likeable AI Redesign System -->
   <!-- Theme: ${safeThemeName} | ${safeSummary} -->
   ${html}
 </body>
 </html>`;
       isRedesign = true;
     } else {
-      // Clean clone of the original page without Designify injected DOM elements
+      // Clean clone of the original page without Likeable injected DOM elements
       const clone = document.documentElement.cloneNode(true);
       clone.querySelectorAll(
         '#designify-hud-root, #designify-mini-container, #designify-mini-fab, #designify-overlay-root, #designify-hud-toast, #designify-hud-style, script[src*="designify"]'
@@ -211,7 +549,7 @@ window.DesignifyHUD = {
         copied = true;
       }
     } catch (e) {
-      console.warn('[Designify] navigator.clipboard failed, trying execCommand fallback:', e);
+      console.warn('[Likeable] navigator.clipboard failed, trying execCommand fallback:', e);
     }
 
     if (!copied) {
@@ -229,7 +567,7 @@ window.DesignifyHUD = {
         copied = document.execCommand('copy');
         document.body.removeChild(textarea);
       } catch (err) {
-        console.error('[Designify] Copy fallback failed:', err);
+        console.error('[Likeable] Copy fallback failed:', err);
       }
     }
 
@@ -298,11 +636,12 @@ window.DesignifyHUD = {
    * Mounts the HUD into the document
    */
   async init() {
-    if (this.hudContainer) {
-      this.show();
-      return;
-    }
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = this.mount();
+    return this._initPromise;
+  },
 
+  async mount() {
     if (window.DesignifyCache) {
       await window.DesignifyCache.loadDesigns();
       if (window.DesignifyCache.cachedList.length > 0) {
@@ -310,34 +649,22 @@ window.DesignifyHUD = {
       }
     }
 
+    await this.loadCustomPresets();
+
     // Create Main HUD Root
     this.hudContainer = document.createElement('div');
     this.hudContainer.id = 'designify-hud-root';
 
-    // Create Minimized Floating Action Button & Dropdown Container
+    // One launcher opens the control panel directly.
     this.miniFab = document.createElement('div');
     this.miniFab.id = 'designify-mini-container';
     this.miniFab.style.display = 'none';
     this.miniFab.innerHTML = `
-      <div id="designify-mini-dropdown" class="designify-mini-dropdown">
-        <button id="designify-copy-website-btn" class="designify-mini-dropdown-item" title="Copy website code to clipboard">
-          <svg class="designify-dropdown-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span class="designify-dropdown-text">Copy this website</span>
-        </button>
-        <button id="designify-open-menu-btn" class="designify-mini-dropdown-item" title="Open full redesign controls">
-          <svg class="designify-dropdown-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-          </svg>
-          <span class="designify-dropdown-text">Open menu</span>
-        </button>
-      </div>
-      <button id="designify-mini-fab-btn" class="designify-mini-fab-btn" title="Designify Menu">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      <button id="designify-mini-fab-btn" class="designify-mini-fab-btn" title="Likeable" aria-label="Open Likeable controls" aria-expanded="false" aria-controls="designify-hud-root">
+        <svg class="designify-launcher-mark" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 10h18M10 10v11"/>
         </svg>
+        <svg class="designify-launcher-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
       </button>
     `;
 
@@ -346,18 +673,29 @@ window.DesignifyHUD = {
 
     this.render();
     this.bindEvents();
-    console.log('[Designify HUD] Mounted successfully with progress system.');
+    this.setupRouteListener();
+    this.setEnabled(true);
+    console.log('[Likeable HUD] Mounted successfully with progress system.');
   },
 
   /**
    * Renders the internal markup of the HUD card
    */
   render() {
-    const presetButtons = this.presets.map((p) => `
-      <button class="designify-preset-btn ${p.id === this.selectedTheme ? 'active' : ''}" data-theme="${p.id}" ${this.isGenerating ? 'disabled' : ''}>
-        ${p.label}
-      </button>
-    `).join('');
+    const presetButtons = this.presets.map((p) => {
+      const isSelected = p.id === this.selectedTheme;
+      const isCustom = !!p.isCustom;
+      const safeId = this.escapeHtml(p.id);
+      const safeLabel = this.escapeHtml(p.label || p.name);
+      const titleAttr = p.description ? this.escapeHtml(p.description) : `${safeLabel} preset`;
+      return `
+        <button type="button" class="designify-preset-btn ${isSelected ? 'active' : ''} ${isCustom ? 'custom' : ''}" aria-pressed="${isSelected}" data-theme="${safeId}" title="${titleAttr}" ${this.isGenerating ? 'disabled' : ''}>
+          <span class="designify-preset-dot designify-dot-${safeId}" aria-hidden="true"></span>
+          <span class="designify-preset-label">${safeLabel}</span>
+          ${isCustom ? `<span class="designify-preset-delete" data-delete-preset-id="${safeId}" title="Remove custom preset" aria-label="Delete ${safeLabel} preset">&times;</span>` : ''}
+        </button>
+      `;
+    }).join('');
 
     // Cached designs switcher
     const cachedDesigns = window.DesignifyCache ? window.DesignifyCache.cachedList : [];
@@ -365,37 +703,37 @@ window.DesignifyHUD = {
 
     let historySection = '';
     if (cachedDesigns.length > 0 && !this.isGenerating) {
-      const chips = cachedDesigns.map((d, index) => {
+      const designButtons = cachedDesigns.map((d, index) => {
         const isActive = d.id === activeDesignId;
         const number = cachedDesigns.length - index;
         const safeId = this.escapeHtml(d.id);
         const safeThemeName = this.escapeHtml(d.themeName || 'Untitled design');
         const safeSummary = this.escapeHtml(d.summary || safeThemeName);
         const safeTime = this.escapeHtml(d.timeFormatted || 'saved');
+        const themeKey = (d.themeKey || '').toLowerCase();
+        let dotClass = 'designify-dot-custom';
+        if (themeKey === 'linear') dotClass = 'designify-dot-linear';
+        else if (themeKey === 'apple') dotClass = 'designify-dot-apple';
+        else if (themeKey === 'lovable') dotClass = 'designify-dot-lovable';
+
+        const titleAttr = safeSummary ? `${safeSummary} (${safeTime})` : `#${number} ${safeThemeName} (${safeTime})`;
         return `
-          <div class="designify-history-chip ${isActive ? 'active' : ''}" data-design-id="${safeId}" title="${safeSummary}">
-            <span>#${number} ${safeThemeName}</span>
-            <span style="font-size: 10px; opacity: 0.65;">(${safeTime})</span>
-            <span class="designify-chip-delete" data-delete-id="${safeId}" title="Remove this design">&times;</span>
-          </div>
+          <button type="button" class="designify-preset-btn designify-design-btn ${isActive ? 'active' : ''}" aria-pressed="${isActive}" data-design-id="${safeId}" title="${titleAttr}">
+            <span class="designify-preset-dot ${dotClass}" aria-hidden="true"></span>
+            <span class="designify-preset-label">#${number} ${safeThemeName}</span>
+            <span class="designify-preset-delete" data-delete-design-id="${safeId}" data-delete-id="${safeId}" title="Remove this design" aria-label="Delete design #${number}">&times;</span>
+          </button>
         `;
       }).join('');
 
       historySection = `
-        <div class="designify-history-section">
-          <div class="designify-history-label">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            Designs (${cachedDesigns.length}):
-          </div>
-          <div class="designify-history-list">
-            <div class="designify-history-chip original ${activeDesignId === 'original' ? 'active' : ''}" data-design-id="original" title="View original website">
-              🌐 Original Site
-            </div>
-            ${chips}
-          </div>
+        <div class="designify-field-heading"><span>Designs</span><span class="designify-field-hint">${cachedDesigns.length} saved</span></div>
+        <div class="designify-presets designify-designs-grid">
+          <button type="button" class="designify-preset-btn designify-design-btn ${activeDesignId === 'original' ? 'active' : ''}" aria-pressed="${activeDesignId === 'original'}" data-design-id="original" title="View original website">
+            <span class="designify-preset-dot designify-dot-original" aria-hidden="true"></span>
+            <span class="designify-preset-label">Original</span>
+          </button>
+          ${designButtons}
         </div>
       `;
     }
@@ -421,28 +759,18 @@ window.DesignifyHUD = {
     }
 
     this.hudContainer.innerHTML = `
-      <div class="designify-hud-card">
+      <section class="designify-hud-card" aria-label="Likeable controls">
         <!-- Header -->
         <div class="designify-hud-header">
           <div class="designify-hud-brand">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-            Designify <span class="designify-badge">AI Live Mirror</span>
+            <span class="designify-panel-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 10h18M10 10v11"/></svg></span>
+            <div>Likeable<span class="designify-panel-subtitle">A new look for this page</span></div>
           </div>
-
           <div class="designify-hud-actions">
-            <!-- CLI Engine Switcher -->
-            <div class="designify-engine-toggle">
-              <button class="designify-engine-btn ${this.selectedEngine === 'claude' ? 'active' : ''}" data-engine="claude" title="Use local Claude Code CLI auth" ${this.isGenerating ? 'disabled' : ''}>Claude</button>
-              <button class="designify-engine-btn ${this.selectedEngine === 'codex' ? 'active' : ''}" data-engine="codex" title="Use local Codex CLI auth" ${this.isGenerating ? 'disabled' : ''}>Codex</button>
-            </div>
-
             <!-- Minimize Button -->
-            <button class="designify-close-btn" id="designify-minimize-btn" title="Minimize to icon">
+            <button class="designify-close-btn" id="designify-minimize-btn" title="Minimize to icon" aria-label="Minimize design studio">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <path d="m6 9 6 6 6-6"/>
               </svg>
             </button>
           </div>
@@ -454,26 +782,27 @@ window.DesignifyHUD = {
         <!-- Live Generation Progress Bar -->
         ${progressBlock}
 
-        <!-- Theme Presets Bar -->
-        <div class="designify-presets" style="${this.isGenerating ? 'opacity: 0.5; pointer-events: none;' : ''}">
+        <div class="designify-field-heading"><span>Style</span><span class="designify-field-hint">Choose a starting point</span></div>
+        <div class="designify-presets">
           ${presetButtons}
         </div>
-
+        <div class="designify-model-row">
+          <span class="designify-field-label">Create with</span>
+          <div class="designify-engine-toggle" role="group" aria-label="AI provider">
+            <button class="designify-engine-btn ${this.selectedEngine === 'claude' ? 'active' : ''}" aria-pressed="${this.selectedEngine === 'claude'}" data-engine="claude" ${this.isGenerating ? 'disabled' : ''}>Claude</button>
+            <button class="designify-engine-btn ${this.selectedEngine === 'codex' ? 'active' : ''}" aria-pressed="${this.selectedEngine === 'codex'}" data-engine="codex" ${this.isGenerating ? 'disabled' : ''}>Codex</button>
+          </div>
+        </div>
+        <label for="designify-custom-prompt" class="designify-field-heading">Your direction <span class="designify-field-hint">Optional</span></label>
         <!-- Prompt and Redesign Action Bar -->
         <div class="designify-hud-main-bar">
-          <input 
-            type="text" 
-            id="designify-custom-prompt" 
-            class="designify-prompt-input" 
-            placeholder="Custom instructions (e.g. 'Handcrafted Stripe-like layout, bespoke typography')..."
-            ${this.isGenerating ? 'disabled' : ''}
-          />
+          <textarea id="designify-custom-prompt" class="designify-prompt-input" rows="3" placeholder="Softer colors, more breathing room…" ${this.isGenerating ? 'disabled' : ''}>${this.escapeHtml(this.customPrompt)}</textarea>
           <button id="designify-generate-btn" class="designify-trigger-btn" ${this.isGenerating ? 'disabled' : ''}>
-            ${this.isGenerating ? '<div class="designify-spinner"></div> Synthesizing...' : `
+            ${this.isGenerating ? '<div class="designify-spinner"></div> Designing…' : `
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                <path d="M5 12h14m-6-6 6 6-6 6"/>
               </svg>
-              Redesign Now
+              Redesign page
             `}
           </button>
         </div>
@@ -481,25 +810,33 @@ window.DesignifyHUD = {
         <!-- Secondary Inspection & Export Bar (shows after generation or when designs exist) -->
         <div class="designify-hud-secondary-bar" id="designify-secondary-bar" style="display: ${this.hasGenerated && !this.isGenerating ? 'flex' : 'none'};">
           <div class="designify-control-group">
-            <button id="designify-split-btn" class="designify-btn-sm" title="Toggle side-by-side comparison slider">
-              ⟷ Split Slider
+            <button id="designify-split-btn" class="designify-btn-sm ${window.DesignifyOverlay?.isSplitActive ? 'active' : ''}" aria-pressed="${!!window.DesignifyOverlay?.isSplitActive}" title="Toggle side-by-side comparison slider">
+              Compare
             </button>
 
             <div class="designify-slider-container" title="Adjust redesign opacity">
-              <span>Opacity:</span>
-              <input type="range" id="designify-opacity-slider" class="designify-slider" min="0" max="100" value="100" />
+              <span>Opacity</span>
+              <input type="range" id="designify-opacity-slider" class="designify-slider" aria-label="Redesign opacity" min="0" max="100" value="${Math.round((window.DesignifyOverlay?.currentOpacity ?? 1) * 100)}" />
             </div>
 
             <button id="designify-export-btn" class="designify-btn-sm" title="Download standalone redesigned HTML/CSS">
-              ↓ Export Code
+              Export
             </button>
+
           </div>
 
           <div class="designify-hint">
-            ${activeDesignId === 'original' ? '<span style="color: #38bdf8;">🌐 Viewing original website</span>' : 'Hold <span class="designify-kbd">Space</span> to peek at original'}
+            ${activeDesignId === 'original' ? '<span style="color: #0066cc;">Viewing original</span>' : 'Hold <span class="designify-kbd">Space</span> to peek at original'}
           </div>
         </div>
-      </div>
+        <div class="designify-panel-footer">
+          <button id="designify-copy-website-btn" class="designify-copy-btn" ${this.isGenerating ? 'disabled' : ''}>
+            <svg class="designify-dropdown-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+            <span class="designify-dropdown-text">Copy page & style</span>
+          </button>
+          <span class="designify-footer-note">Preview on this page</span>
+        </div>
+      </section>
     `;
   },
 
@@ -508,13 +845,22 @@ window.DesignifyHUD = {
    */
   bindEvents() {
     this.hudContainer.addEventListener('click', async (e) => {
+      if (e.target.closest('#designify-minimize-btn')) {
+        this.minimize();
+        return;
+      }
       if (this.isGenerating) return;
+      const copyButton = e.target.closest('#designify-copy-website-btn');
+      if (copyButton) {
+        await this.handleCopyWebsite(copyButton);
+        return;
+      }
 
-      // 1. History Chip Switching
-      const deleteBtn = e.target.closest('.designify-chip-delete');
-      if (deleteBtn) {
+      // 1. Saved Design Switching and Deletion
+      const deleteDesignBtn = e.target.closest('[data-delete-design-id]') || e.target.closest('.designify-chip-delete');
+      if (deleteDesignBtn) {
         e.stopPropagation();
-        const deleteId = deleteBtn.dataset.deleteId;
+        const deleteId = deleteDesignBtn.dataset.deleteDesignId || deleteDesignBtn.dataset.deleteId;
         if (window.DesignifyCache) {
           const wasActive = window.DesignifyCache.currentActiveId === deleteId;
           await window.DesignifyCache.deleteDesign(deleteId);
@@ -535,14 +881,17 @@ window.DesignifyHUD = {
               window.DesignifyOverlay.toggleVisibility(false);
             }
           }
+          if (window.DesignifyCache.cachedList.length === 0) {
+            this.hasGenerated = false;
+          }
           this.render();
         }
         return;
       }
 
-      const chip = e.target.closest('.designify-history-chip');
-      if (chip) {
-        const designId = chip.dataset.designId;
+      const designBtn = e.target.closest('.designify-design-btn') || e.target.closest('.designify-history-chip');
+      if (designBtn) {
+        const designId = designBtn.dataset.designId;
         if (designId === 'original') {
           if (window.DesignifyCache) window.DesignifyCache.currentActiveId = 'original';
           window.DesignifyOverlay.toggleVisibility(false);
@@ -565,25 +914,40 @@ window.DesignifyHUD = {
         return;
       }
 
-      // 2. Preset buttons
-      const presetBtn = e.target.closest('.designify-preset-btn');
-      if (presetBtn) {
-        this.selectedTheme = presetBtn.dataset.theme;
-        this.hudContainer.querySelectorAll('.designify-preset-btn').forEach((b) => b.classList.remove('active'));
-        presetBtn.classList.add('active');
+      // 2. Preset buttons & custom preset removal
+      const deletePresetBtn = e.target.closest('.designify-preset-delete[data-delete-preset-id]');
+      if (deletePresetBtn) {
+        e.stopPropagation();
+        const presetId = deletePresetBtn.dataset.deletePresetId;
+        if (presetId) {
+          await this.deleteCustomPreset(presetId);
+        }
+        return;
       }
 
+      const presetBtn = e.target.closest('.designify-preset-btn[data-theme]');
+      if (presetBtn) {
+        this.selectedTheme = presetBtn.dataset.theme;
+        this.hudContainer.querySelectorAll('.designify-preset-btn[data-theme]').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        presetBtn.classList.add('active');
+        presetBtn.setAttribute('aria-pressed', 'true');
+        return;
+      }
+
+      // Copy page buttons in HUD
       // 3. Engine toggle
       const engineBtn = e.target.closest('.designify-engine-btn');
       if (engineBtn) {
         this.selectedEngine = engineBtn.dataset.engine;
-        this.hudContainer.querySelectorAll('.designify-engine-btn').forEach((b) => b.classList.remove('active'));
+        this.hudContainer.querySelectorAll('.designify-engine-btn').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         engineBtn.classList.add('active');
-      }
-
-      // 4. Minimize
-      if (e.target.closest('#designify-minimize-btn')) {
-        this.minimize();
+        engineBtn.setAttribute('aria-pressed', 'true');
       }
 
       // 5. Generate button
@@ -594,7 +958,9 @@ window.DesignifyHUD = {
       // 6. Split slider toggle
       if (e.target.closest('#designify-split-btn')) {
         const btn = this.hudContainer.querySelector('#designify-split-btn');
-        const isActive = btn.classList.toggle('active');
+        const isActive = !window.DesignifyOverlay.isSplitActive;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
         if (isActive && window.DesignifyCache && window.DesignifyCache.currentActiveId === 'original') {
           const recent = window.DesignifyCache.cachedList[0];
           if (recent) {
@@ -610,6 +976,7 @@ window.DesignifyHUD = {
           }
         }
         window.DesignifyOverlay.toggleSplitMode(isActive);
+        this.render();
       }
 
       // 7. Export button
@@ -620,6 +987,7 @@ window.DesignifyHUD = {
 
     // Opacity slider
     this.hudContainer.addEventListener('input', (e) => {
+      if (e.target.id === 'designify-custom-prompt') this.customPrompt = e.target.value;
       if (e.target.id === 'designify-opacity-slider') {
         const val = parseFloat(e.target.value) / 100;
         if (window.DesignifyCache && window.DesignifyCache.currentActiveId === 'original') {
@@ -637,56 +1005,108 @@ window.DesignifyHUD = {
           }
         }
         window.DesignifyOverlay.setOpacity(val);
+        this.hudContainer.querySelector('#designify-opacity-slider').value = String(Math.round(val * 100));
       }
     });
 
     // Enter in prompt input triggers redesign
     this.hudContainer.addEventListener('keydown', (e) => {
-      if (e.target.id === 'designify-custom-prompt' && e.key === 'Enter' && !this.isGenerating) {
+      if (e.target.id === 'designify-custom-prompt' && e.key === 'Enter' && !e.shiftKey && !this.isGenerating) {
+        e.preventDefault();
         this.handleGenerate();
       }
     });
 
-    // Mini FAB click toggles dropdown
-    const miniFabBtn = this.miniFab.querySelector('#designify-mini-fab-btn');
-    if (miniFabBtn) {
-      miniFabBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggleMiniDropdown();
-      });
-    }
-
-    // Dropdown button: "Copy this website"
-    const copyWebsiteBtn = this.miniFab.querySelector('#designify-copy-website-btn');
-    if (copyWebsiteBtn) {
-      copyWebsiteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await this.handleCopyWebsite(copyWebsiteBtn);
-      });
-    }
-
-    // Dropdown button: "Open menu"
-    const openMenuBtn = this.miniFab.querySelector('#designify-open-menu-btn');
-    if (openMenuBtn) {
-      openMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.closeMiniDropdown();
+    this.miniFab.querySelector('#designify-mini-fab-btn').addEventListener('click', () => {
+      if (this.isOpen) this.minimize();
+      else {
         this.show();
-      });
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (this.isMiniDropdownOpen && this.miniFab && !this.miniFab.contains(e.target)) {
-        this.closeMiniDropdown();
+        this.hudContainer.querySelector('#designify-custom-prompt')?.focus();
       }
     });
-
-    // Close dropdown on Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isMiniDropdownOpen) {
-        this.closeMiniDropdown();
+      if (e.key === 'Escape' && this.isOpen) {
+        this.minimize();
+        this.miniFab.querySelector('#designify-mini-fab-btn')?.focus();
       }
+    });
+  },
+
+  /**
+   * Listens for route and URL changes in SPAs and reloads designs for the active total URL
+   */
+  setupRouteListener() {
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+    if (this._routeListenerBound) return;
+    this._routeListenerBound = true;
+
+    let lastUrl = (window.location && window.location.href) || '';
+
+    const handleRouteChange = async () => {
+      const currentUrl = (window.location && window.location.href) || '';
+      if (currentUrl === lastUrl) return;
+      lastUrl = currentUrl;
+      console.log(`[Likeable] Route changed to: ${currentUrl}`);
+
+      if (window.DesignifyCache && typeof window.DesignifyCache.loadDesigns === 'function') {
+        await window.DesignifyCache.loadDesigns(currentUrl);
+      }
+
+      if (window.DesignifyOverlay) {
+        const activeDesign = window.DesignifyCache?.getDesignById
+          ? window.DesignifyCache.getDesignById(window.DesignifyCache.currentActiveId)
+          : null;
+        if (activeDesign && typeof window.DesignifyOverlay.render === 'function') {
+          window.DesignifyOverlay.render({
+            html: activeDesign.html,
+            css: activeDesign.css,
+            summary: activeDesign.summary,
+            themeName: activeDesign.themeName
+          });
+          if (typeof window.DesignifyOverlay.toggleVisibility === 'function') {
+            window.DesignifyOverlay.toggleVisibility(true);
+          }
+        } else {
+          if (typeof window.DesignifyOverlay.toggleVisibility === 'function') {
+            window.DesignifyOverlay.toggleVisibility(false);
+          }
+          if (window.DesignifyCache) {
+            window.DesignifyCache.currentActiveId = 'original';
+          }
+        }
+      }
+
+      this.hasGenerated = (window.DesignifyCache?.cachedList?.length || 0) > 0;
+      this.render();
+    };
+
+    window.addEventListener('popstate', handleRouteChange);
+    window.addEventListener('hashchange', handleRouteChange);
+
+    if (typeof history !== 'undefined') {
+      const origPushState = history.pushState;
+      if (typeof origPushState === 'function' && !origPushState.__likeablePatched) {
+        history.pushState = function (...args) {
+          const res = origPushState.apply(this, args);
+          try { window.dispatchEvent(new Event('likeable:routechange')); } catch {}
+          return res;
+        };
+        history.pushState.__likeablePatched = true;
+      }
+
+      const origReplaceState = history.replaceState;
+      if (typeof origReplaceState === 'function' && !origReplaceState.__likeablePatched) {
+        history.replaceState = function (...args) {
+          const res = origReplaceState.apply(this, args);
+          try { window.dispatchEvent(new Event('likeable:routechange')); } catch {}
+          return res;
+        };
+        history.replaceState.__likeablePatched = true;
+      }
+    }
+
+    window.addEventListener('likeable:routechange', () => {
+      setTimeout(handleRouteChange, 50);
     });
   },
 
@@ -708,7 +1128,7 @@ window.DesignifyHUD = {
         customPrompt
       });
 
-      this.updateProgress(100, 'Redesign complete! ✨', 'Applying final polish and event listeners');
+      this.updateProgress(100, 'Redesign complete', 'Applying final polish and event listeners');
       await new Promise((r) => setTimeout(r, 600));
       this.hasGenerated = true;
     } catch (err) {
@@ -720,3 +1140,6 @@ window.DesignifyHUD = {
     }
   }
 };
+
+window.DesignifyHUD.rebuildPresets();
+window.LikeableHUD = window.DesignifyHUD;

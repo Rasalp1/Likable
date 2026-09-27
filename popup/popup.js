@@ -1,12 +1,14 @@
 /**
- * Designify Popup Script
+ * Likeable Popup Script
  */
 
-const BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+const BRIDGE_TOKEN_KEY = 'likeableBridgeToken';
+const LEGACY_BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
 
 async function getStoredToken() {
-  const result = await chrome.storage.local.get(BRIDGE_TOKEN_KEY);
-  return typeof result[BRIDGE_TOKEN_KEY] === 'string' ? result[BRIDGE_TOKEN_KEY].trim() : '';
+  const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, LEGACY_BRIDGE_TOKEN_KEY]);
+  const token = result[BRIDGE_TOKEN_KEY] || result[LEGACY_BRIDGE_TOKEN_KEY];
+  return typeof token === 'string' ? token.trim() : '';
 }
 
 async function fetchBridgeHealth(token) {
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const statusDot = statusIndicator.querySelector('.status-dot');
   const valClaude = document.getElementById('val-claude');
   const valCodex = document.getElementById('val-codex');
-  const btnLaunch = document.getElementById('btn-launch-hud');
+  const overlayToggle = document.getElementById('overlay-toggle');
   const tokenInput = document.getElementById('bridge-token');
   const saveTokenButton = document.getElementById('save-bridge-token');
   const tokenStatus = document.getElementById('token-status');
@@ -45,7 +47,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (data && data.status === 'ok' && data.authenticated) {
       statusDot.classList.remove('error');
-      statusText.textContent = 'Connected (Port 3030)';
+      statusDot.classList.add('connected');
+      statusText.textContent = 'Connected';
       tokenStatus.textContent = 'Token saved locally in this extension.';
 
       valClaude.textContent = data.claudeAvailable ? (data.claudeVersion || 'Ready') : 'Not Found';
@@ -54,6 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       valCodex.textContent = data.codexAvailable ? (data.codexVersion || 'Ready') : 'Not Found';
       valCodex.className = `value ${data.codexAvailable ? 'badge-success' : 'badge-error'}`;
     } else if (data && data.requiresAuth) {
+      statusDot.classList.remove('connected');
       statusDot.classList.add('error');
       statusText.textContent = 'Token required';
       tokenStatus.textContent = 'Paste the token printed by the bridge server.';
@@ -62,8 +66,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       valCodex.textContent = 'Configure token';
       valCodex.className = 'value badge-error';
     } else {
+      statusDot.classList.remove('connected');
       statusDot.classList.add('error');
-      statusText.textContent = 'Server Offline';
+      statusText.textContent = 'Offline';
       tokenStatus.textContent = 'Start node server/index.js, then save its token here.';
       valClaude.textContent = 'Bridge Not Running';
       valClaude.className = 'value badge-error';
@@ -78,43 +83,44 @@ document.addEventListener('DOMContentLoaded', async () => {
       tokenStatus.textContent = 'Token must be at least 32 characters.';
       return;
     }
-    await chrome.storage.local.set({ [BRIDGE_TOKEN_KEY]: token });
+    await chrome.storage.local.set({ [BRIDGE_TOKEN_KEY]: token, [LEGACY_BRIDGE_TOKEN_KEY]: token });
     tokenStatus.textContent = 'Token saved locally in this extension.';
     await checkStatus();
   });
 
-  // Initial check
-  await checkStatus();
+  const alertBox = document.getElementById('action-alert');
+  function showError(message) {
+    alertBox.textContent = message;
+    alertBox.style.display = message ? 'block' : 'none';
+  }
 
-  // Clicking indicator refreshes status
-  statusIndicator.style.cursor = 'pointer';
-  statusIndicator.addEventListener('click', () => checkStatus());
+  // Keep this popup tied to the tab on which it was opened.
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  try {
+    const response = await chrome.runtime.sendMessage({ action: 'get_hud_visibility', tabId: tab?.id });
+    if (!response?.success) throw new Error(response?.error || 'Unable to read page controls.');
+    overlayToggle.checked = response.enabled;
+    overlayToggle.disabled = false;
+  } catch (error) {
+    showError(error.message);
+  }
 
-  // Activate HUD on active tab
-  btnLaunch.addEventListener('click', () => {
-    const alertBox = document.getElementById('action-alert');
-    if (alertBox) alertBox.style.display = 'none';
-
-    btnLaunch.disabled = true;
-    btnLaunch.textContent = 'Injecting HUD...';
-
-    chrome.runtime.sendMessage({ action: 'inject_designify' }, (response) => {
-      btnLaunch.disabled = false;
-      if (response && response.success) {
-        btnLaunch.textContent = '✓ HUD Activated!';
-        setTimeout(() => window.close(), 400);
-      } else {
-        btnLaunch.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-          </svg>
-          Activate HUD on Tab
-        `;
-        if (alertBox) {
-          alertBox.textContent = response?.error || 'Failed to inject HUD. Ensure you are on a standard webpage.';
-          alertBox.style.display = 'block';
-        }
-      }
-    });
+  overlayToggle.addEventListener('change', async () => {
+    const enabled = overlayToggle.checked;
+    overlayToggle.disabled = true;
+    showError('');
+    try {
+      const response = await chrome.runtime.sendMessage({ action: 'set_hud_visibility', tabId: tab?.id, enabled });
+      if (!response?.success) throw new Error(response?.error || 'Unable to change page controls.');
+      overlayToggle.checked = response.enabled;
+    } catch (error) {
+      overlayToggle.checked = !enabled;
+      showError(error.message);
+    } finally {
+      overlayToggle.disabled = false;
+    }
   });
+
+  statusIndicator.addEventListener('click', () => checkStatus());
+  await checkStatus();
 });

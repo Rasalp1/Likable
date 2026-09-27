@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Test Designify Controls</title>
+  <meta charset="UTF-8">
+  <title>Test Likeable Controls</title>
   <link rel="stylesheet" href="content/hud.css">
   <style>
     body {
@@ -27,7 +28,25 @@
     window.addEventListener('DOMContentLoaded', async () => {
       console.log('--- TEST START ---');
       await window.DesignifyHUD.init();
-      window.DesignifyHUD.show();
+      console.assert(window.DesignifyHUD.isOpen === true, 'HUD is open by default');
+      console.assert(window.DesignifyHUD.hudContainer.style.display === 'block', 'HUD panel is visible by default');
+
+      await window.DesignifyCache.saveDesign({
+        id: 'mock-1',
+        themeKey: 'linear',
+        themeName: 'Linear',
+        summary: 'Clean dark mode with high contrast',
+        html: '<div id="designify-container"><h1>Linear Design</h1></div>',
+        css: '#designify-container { background: #0d0e12; color: #fff; padding: 40px; }'
+      });
+      await window.DesignifyCache.saveDesign({
+        id: 'mock-2',
+        themeKey: 'apple',
+        themeName: 'Apple',
+        summary: 'Minimalist clean light aesthetic',
+        html: '<div id="designify-container"><h1>Apple Design</h1></div>',
+        css: '#designify-container { background: #fbfbfd; color: #1d1d1f; padding: 40px; }'
+      });
 
       // Render a mock redesign
       window.DesignifyOverlay.render({
@@ -117,35 +136,21 @@
       console.log('newDivider display:', newDivider.style.display || window.getComputedStyle(newDivider).display);
       console.log('newWrapper clipPath:', newWrapper.style.clipPath);
 
-      // Test 5: Miniature Mode & Dropdown
-      console.log('\n--- Action 5: Minimize HUD ---');
-      const minimizeBtn = document.querySelector('#designify-minimize-btn');
-      minimizeBtn.click();
-      console.log('hudContainer display after minimize:', window.DesignifyHUD.hudContainer.style.display);
-      console.log('miniFab display after minimize:', window.DesignifyHUD.miniFab.style.display);
-
-      const miniFabBtn = window.DesignifyHUD.miniFab.querySelector('#designify-mini-fab-btn');
-      const miniDropdown = window.DesignifyHUD.miniFab.querySelector('#designify-mini-dropdown');
-      const copyBtn = window.DesignifyHUD.miniFab.querySelector('#designify-copy-website-btn');
-      const openMenuBtn = window.DesignifyHUD.miniFab.querySelector('#designify-open-menu-btn');
-
-      console.log('miniFabBtn exists:', !!miniFabBtn);
-      console.log('miniDropdown open before click:', miniDropdown.classList.contains('open'));
-
-      console.log('\n--- Action 6: Click Mini FAB Stack Icon ---');
-      miniFabBtn.click();
-      console.log('miniDropdown open after click:', miniDropdown.classList.contains('open'));
-      console.log('copyBtn text:', copyBtn?.textContent.trim());
-      console.log('openMenuBtn text:', openMenuBtn?.textContent.trim());
-
-      console.log('\n--- Action 7: Click "Copy this website" ---');
-      copyBtn.click();
-
-      console.log('\n--- Action 8: Click "Open menu" ---');
-      openMenuBtn.click();
-      console.log('hudContainer display after open menu:', window.DesignifyHUD.hudContainer.style.display);
-      console.log('miniFab display after open menu:', window.DesignifyHUD.miniFab.style.display);
-      console.log('miniDropdown open after open menu:', miniDropdown.classList.contains('open'));
+      // One launcher opens the single control panel directly.
+      const hud = window.DesignifyHUD;
+      hud.minimize();
+      console.assert(hud.hudContainer.style.display === 'none', 'Panel closes');
+      console.assert(hud.miniFab.style.display === 'flex', 'Launcher remains visible');
+      hud.miniFab.querySelector('#designify-mini-fab-btn').click();
+      console.assert(hud.isOpen, 'Launcher opens the panel directly');
+      console.assert(!document.querySelector('#designify-mini-dropdown'), 'No intermediate menu');
+      console.assert(document.querySelectorAll('#designify-hud-root').length === 1, 'Only one panel');
+      console.assert(!!hud.hudContainer.querySelector('#designify-copy-website-btn'), 'Copy page and style available');
+      hud.setEnabled(false);
+      console.assert(hud.miniFab.style.display === 'none', 'Toggle hides launcher');
+      console.assert(hud.hudContainer.style.display === 'none', 'Toggle hides panel');
+      hud.setEnabled(true);
+      hud.show();
 
       console.log('--- TEST END ---');
     });

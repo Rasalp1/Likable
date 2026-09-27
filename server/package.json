@@ -1,7 +1,7 @@
 {
-  "name": "designify-bridge-server",
+  "name": "likeable-bridge-server",
   "version": "1.1.0",
-  "description": "Local bridge daemon connecting Designify Chrome extension to local Claude Code and Codex CLIs",
+  "description": "Local bridge daemon connecting Likeable Chrome extension to local Claude Code and Codex CLIs",
   "main": "index.js",
   "type": "module",
   "scripts": {
