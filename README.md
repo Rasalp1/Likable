@@ -1,4 +1,4 @@
-# Likable - Local-first redesigns for live websites
+# Likable - Lovable for live websites
 
 <p align="center">
   <img src="icons/icon128.png" alt="Likable Logo" width="80" height="80" />
