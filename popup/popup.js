@@ -19,7 +19,13 @@ async function fetchBridgeHealth(token) {
 
   for (const url of urls) {
     try {
-      const res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+      const headers = { 'Cache-Control': 'no-cache, no-store' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(url, {
+        headers,
+        cache: 'no-store',
+        signal: AbortSignal.timeout(3000)
+      });
       if (res.ok) {
         return await res.json();
       }
@@ -83,7 +89,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       tokenStatus.textContent = 'Token must be at least 32 characters.';
       return;
     }
-    await chrome.storage.local.set({ [BRIDGE_TOKEN_KEY]: token, [LEGACY_BRIDGE_TOKEN_KEY]: token });
+    const toStore = { [BRIDGE_TOKEN_KEY]: token };
+    for (const key of LEGACY_BRIDGE_TOKEN_KEYS) {
+      toStore[key] = token;
+    }
+    await chrome.storage.local.set(toStore);
     tokenStatus.textContent = 'Token saved locally in this extension.';
     await checkStatus();
   });
@@ -122,5 +132,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   statusIndicator.addEventListener('click', () => checkStatus());
+  window.addEventListener('focus', () => checkStatus());
+  const pollInterval = setInterval(() => checkStatus(), 4_000);
+  window.addEventListener('unload', () => clearInterval(pollInterval));
+
   await checkStatus();
 });

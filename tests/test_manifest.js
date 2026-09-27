@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
-const backgroundSource = readFileSync(new URL('./background.js', import.meta.url), 'utf8');
+const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
+const backgroundSource = readFileSync(new URL('../background.js', import.meta.url), 'utf8');
 
 test('page access is user activated instead of automatic on every URL', () => {
   assert.equal(manifest.permissions.includes('activeTab'), true);

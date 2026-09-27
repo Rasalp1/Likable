@@ -19,7 +19,7 @@
 
 ## What is Likable?
 
-Have you ever browsed an indispensable web application or reference site that looks like it was built two decades ago? **Likable** is an intelligent Chrome extension (Manifest V3) that redesigns any live website on the fly into a state-of-the-art, high-craft web experience.
+**Likable** is an intelligent Chrome extension that redesigns any live website on the fly into a complete web experience.
 
 Unlike static screenshot restylers or mockup generators, **Likable preserves website functionality**. The redesigned page lives inside an isolated **Shadow DOM overlay** rendered directly over the original page. Through real-time **Bi-directional Event Mirroring**, clicking buttons or links, typing into search boxes, and submitting forms in the redesigned interface trigger the exact corresponding interactions on the real underlying site.
 
@@ -61,7 +61,7 @@ Unlike static screenshot restylers or mockup generators, **Likable preserves web
 - **Bespoke Design Presets**:
   - **Linear-inspired**: Sleek graphite atmosphere, bento-grid layouts, hairline borders, crisp Inter typography.
   - **Apple-inspired**: Clean minimalist whitespace, blue pill buttons, frosted glass navigation, and system typography.
-- **Lovable-inspired**: High-craft dark canvas, luminous accents, refined spacing, and subtle pill badges.
+  - **Lovable-inspired**: High-craft dark canvas with luminous pink, purple, and blue gradients, colorful pill badges, and vibrant accents.
 - **"Copy Page & Style" Preset Extraction**: Browse any site you love, click *Copy page & style*, and Likable extracts a reusable summary of its color palette, radii, typography, and spacing. It does not copy logos, proprietary assets, or page text into the preset.
 
 Preset names refer to visual inspiration only. Likable is independent and is not affiliated with the referenced products or companies.

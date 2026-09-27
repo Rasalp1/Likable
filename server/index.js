@@ -17,9 +17,6 @@ const MAX_BODY_BYTES = 12 * 1024 * 1024;
 const MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
 const MAX_GENERATED_OUTPUT_BYTES = 4 * 1024 * 1024;
 const MAX_CLI_OUTPUT_BYTES = 8 * 1024 * 1024;
-const DEFAULT_CLI_TIMEOUT_MS = 120_000;
-const DEFAULT_MAX_CONCURRENT = 1;
-
 function httpError(statusCode, message) {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -30,6 +27,9 @@ function positiveInteger(value, fallback) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
+
+const DEFAULT_CLI_TIMEOUT_MS = positiveInteger(process.env.LIKABLE_CLI_TIMEOUT_MS || process.env.CLI_TIMEOUT_MS, 240_000);
+const DEFAULT_MAX_CONCURRENT = 1;
 
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -498,7 +498,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
 
     try {
       if (payload.screenshot) {
-        tempScreenshotPath = path.join(os.tmpdir(), `likable_snap_${crypto.randomUUID()}.bin`);
+        tempScreenshotPath = path.join(os.tmpdir(), `likable_snap_${crypto.randomUUID()}.png`);
         fs.writeFileSync(tempScreenshotPath, payload.screenshot, { mode: 0o600, flag: 'wx' });
       }
 
@@ -540,7 +540,8 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
       if (statusCode >= 500) console.error('[Likable Bridge] Request failed:', error.message);
       if (!res.writableEnded) {
-        sendJson(res, statusCode, { error: statusCode >= 500 ? 'Redesign request failed.' : error.message });
+        const message = (statusCode === 504 || statusCode === 502) ? error.message : (statusCode >= 500 ? 'Redesign request failed.' : error.message);
+        sendJson(res, statusCode, { error: message });
       }
     } finally {
       activeRequests = Math.max(0, activeRequests - 1);

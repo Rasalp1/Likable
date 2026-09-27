@@ -148,7 +148,7 @@ window.LikableOverlay = window.LikeableOverlay = window.DesignifyOverlay =
     if (rawTheme.includes('apple')) {
       currentThemeBg = '#f5f5f7';
     } else if (rawTheme.includes('lovable')) {
-      currentThemeBg = '#0b0b0f';
+      currentThemeBg = '#0b0816';
     } else if (rawTheme.includes('linear')) {
       currentThemeBg = '#0d0e12';
     }

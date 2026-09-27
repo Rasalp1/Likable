@@ -119,7 +119,10 @@ window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordin
     } catch (err) {
       window.DesignifyHUD?.stopSynthesisTicker();
       console.warn('[Likable] Bridge request failed or timed out:', err);
-      // Fallback: If bridge server was unreachable, throw with clear instructions
+      // Fallback: If bridge server returned an error vs was unreachable
+      if (/Bridge server error/i.test(err.message)) {
+        throw new Error(`Likable Bridge Server at ${BRIDGE_URL} error: ${err.message.replace(/^Bridge server error\s*/i, '')}`);
+      }
       throw new Error(`Could not communicate with Likable Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
     }
 

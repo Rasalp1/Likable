@@ -63,7 +63,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(async (res) => {
         if (!res.ok) {
           const errText = await res.text();
-          throw new Error(`Bridge server error ${res.status}: ${errText}`);
+          let parsedError = null;
+          try {
+            const parsed = JSON.parse(errText);
+            if (parsed && typeof parsed.error === 'string') {
+              parsedError = parsed.error;
+            }
+          } catch {}
+          throw new Error(`Bridge server error ${res.status}: ${parsedError || errText}`);
         }
         return res.json();
       })

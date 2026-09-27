@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-const hudSource = readFileSync(new URL('./content/hud.js', import.meta.url), 'utf8');
+const hudSource = readFileSync(new URL('../content/hud.js', import.meta.url), 'utf8');
 
 function fixture() {
   const mounted = [];
@@ -92,7 +92,7 @@ test('background visibility messages reuse the existing HUD without reinjecting'
       }
     }
   });
-  vm.runInContext(readFileSync(new URL('./background.js', import.meta.url), 'utf8'), background);
+  vm.runInContext(readFileSync(new URL('../background.js', import.meta.url), 'utf8'), background);
   const send = (action, enabled) => new Promise((resolve) => listener({ action, enabled, tabId: 7 }, {}, resolve));
   assert.equal((await send('get_hud_visibility')).enabled, true);
   assert.equal((await send('set_hud_visibility', false)).enabled, false);

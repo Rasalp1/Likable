@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { THEME_PRESETS, THEME_MANDATES, buildRedesignPrompt } from './server/prompts.js';
+import { THEME_PRESETS, THEME_MANDATES, buildRedesignPrompt } from '../server/prompts.js';
 
 const REQUIRED_PRESET_KEYS = [
   'id',
@@ -105,10 +105,19 @@ test('server THEME_PRESETS follow the complete preset structure content-wise', (
     assert.equal(preset.id, key);
     assertPresetStructure(preset, { isCustom: false });
   }
+
+  // Lovable preset is vibrant and colorful with pink, purple, and blue
+  const lovable = THEME_PRESETS.lovable;
+  assert.match(lovable.mandate, /pink/i);
+  assert.match(lovable.mandate, /purple/i);
+  assert.match(lovable.mandate, /blue/i);
+  assert.equal(lovable.palette.pink, '#ec4899');
+  assert.equal(lovable.palette.purple, '#a855f7');
+  assert.equal(lovable.palette.blue, '#3b82f6');
 });
 
 test('HUD defaultPresets follow the complete preset structure content-wise', () => {
-  const hudSource = readFileSync(new URL('./content/hud.js', import.meta.url), 'utf8');
+  const hudSource = readFileSync(new URL('../content/hud.js', import.meta.url), 'utf8');
   const makeElement = () => ({
     style: {},
     dataset: {},
@@ -148,10 +157,19 @@ test('HUD defaultPresets follow the complete preset structure content-wise', () 
   for (const preset of hud.presets) {
     assertPresetStructure(preset, { isCustom: false });
   }
+
+  const hudLovable = hud.defaultPresets.find((p) => p.id === 'lovable');
+  assert.ok(hudLovable);
+  assert.match(hudLovable.mandate, /pink/i);
+  assert.match(hudLovable.mandate, /purple/i);
+  assert.match(hudLovable.mandate, /blue/i);
+  assert.equal(hudLovable.palette.pink, '#ec4899');
+  assert.equal(hudLovable.palette.purple, '#a855f7');
+  assert.equal(hudLovable.palette.blue, '#3b82f6');
 });
 
 test('ingester extractDesignPreset generates presets with complete structure and anti-AI-generated mandate', () => {
-  const ingesterSource = readFileSync(new URL('./content/ingester.js', import.meta.url), 'utf8');
+  const ingesterSource = readFileSync(new URL('../content/ingester.js', import.meta.url), 'utf8');
 
   const makeEl = (tag = 'div', style = {}) => ({
     tagName: tag.toUpperCase(),
@@ -265,6 +283,9 @@ test('buildRedesignPrompt incorporates design tokens and anti-AI instructions fo
   assert.match(lovablePrompt, /MUST NOT look AI-generated/i);
   assert.match(lovablePrompt, /Layout: Max-width 1480px/);
   assert.match(lovablePrompt, /Card Radius 12px/);
+  assert.match(lovablePrompt, /pink/i);
+  assert.match(lovablePrompt, /purple/i);
+  assert.match(lovablePrompt, /blue/i);
 
   // Test with a custom preset
   const customPreset = {
@@ -335,7 +356,7 @@ test('buildRedesignPrompt incorporates design tokens and anti-AI instructions fo
 });
 
 test('HUD loadCustomPresets purges custom presets matching Linear and Lovable', async () => {
-  const hudSource = readFileSync(new URL('./content/hud.js', import.meta.url), 'utf8');
+  const hudSource = readFileSync(new URL('../content/hud.js', import.meta.url), 'utf8');
   let stored = [
     { id: 'preset-linear-123', name: 'Linear', originUrl: 'https://linear.app' },
     { id: 'preset-lovable-456', name: 'Lovable', originUrl: 'https://lovable.dev' },
@@ -379,7 +400,7 @@ test('HUD loadCustomPresets purges custom presets matching Linear and Lovable', 
 });
 
 test('DesignifyCache keys by total URL and distinguishes routes, query params, and hash fragments', async () => {
-  const cacheSource = readFileSync(new URL('./content/cache.js', import.meta.url), 'utf8');
+  const cacheSource = readFileSync(new URL('../content/cache.js', import.meta.url), 'utf8');
   const storage = {};
   const context = vm.createContext({
     window: {
@@ -461,7 +482,7 @@ test('DesignifyCache keys by total URL and distinguishes routes, query params, a
 });
 
 test('DesignifyCache falls back to legacy origin+pathname keys when total URL key is empty', async () => {
-  const cacheSource = readFileSync(new URL('./content/cache.js', import.meta.url), 'utf8');
+  const cacheSource = readFileSync(new URL('../content/cache.js', import.meta.url), 'utf8');
   const legacyPathKey = 'likeable_designs_https://example.com/docs';
   const legacyData = [{ id: 'des-legacy', themeName: 'Legacy Redesign', html: '<p>Old</p>', css: '' }];
   const storage = { [legacyPathKey]: JSON.stringify(legacyData) };
@@ -491,7 +512,7 @@ test('DesignifyCache falls back to legacy origin+pathname keys when total URL ke
 });
 
 test('ingester extractDesignPreset uses total URL and route-specific label when on a sub-route', () => {
-  const ingesterSource = readFileSync(new URL('./content/ingester.js', import.meta.url), 'utf8');
+  const ingesterSource = readFileSync(new URL('../content/ingester.js', import.meta.url), 'utf8');
 
   const makeEl = (tag = 'div', style = {}) => ({
     tagName: tag.toUpperCase(),
@@ -553,7 +574,7 @@ test('ingester extractDesignPreset uses total URL and route-specific label when 
 });
 
 test('HUD saveCustomPreset allows multiple presets from different routes of the same domain', async () => {
-  const hudSource = readFileSync(new URL('./content/hud.js', import.meta.url), 'utf8');
+  const hudSource = readFileSync(new URL('../content/hud.js', import.meta.url), 'utf8');
   let stored = [];
 
   const context = vm.createContext({

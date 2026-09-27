@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export function getBridgeToken() {
   const token = (process.env.LIKABLE_BRIDGE_TOKEN || process.env.LIKEABLE_BRIDGE_TOKEN || process.env.DESIGNIFY_BRIDGE_TOKEN)?.trim();

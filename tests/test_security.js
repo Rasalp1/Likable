@@ -11,7 +11,7 @@ import {
   loadBridgeToken,
   parseJsonSafely,
   validatePayload
-} from './server/index.js';
+} from '../server/index.js';
 
 const TOKEN = 'test-token-that-is-long-enough-for-authentication-1234567890';
 const generatedResponse = {
@@ -267,5 +267,27 @@ test('bridge passes abort signal and frees slot if client aborts', async () => {
   response.emit('close');
   await cliFinishedPromise;
   assert.equal(receivedSignal.aborted, true);
+});
+
+test('bridge preserves actionable timeout message on 504', async () => {
+  const server = createServer({
+    token: TOKEN,
+    runCliImpl: () => {
+      const err = new Error('The claude CLI exceeded the 240000ms timeout.');
+      err.statusCode = 504;
+      return Promise.reject(err);
+    }
+  });
+  const auth = { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' };
+
+  const res = await dispatch(server, {
+    method: 'POST',
+    url: '/api/redesign',
+    headers: auth,
+    body: JSON.stringify({ engine: 'claude', domTree: [] })
+  });
+
+  assert.equal(res.status, 504);
+  assert.equal(res.json.error, 'The claude CLI exceeded the 240000ms timeout.');
 });
 
