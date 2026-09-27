@@ -212,6 +212,7 @@ Use these tokens as a starting point. Do not copy logos, proprietary assets, tex
       mandate: `
 ### LOVABLE-INSPIRED COLORFUL DESIGN SYSTEM GUIDANCE:
 The user selected the **Lovable** preset (inspired by https://lovable.dev). This preset MUST be colorful, vibrant, and luminous, featuring rich harmonies of **pink, purple, and blue** over a deep cosmic dark canvas. Under NO circumstances should the interface look black-and-white, monochrome, or dull gray:
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress.
 
 1. **Vibrant Dark Atmosphere & Canvas (Pink, Purple & Blue Radiance)**:
    - Canvas Background: \`#0b0816\` (deep cosmic midnight canvas infused with subtle ambient radial gradients or soft glows of \`#8b5cf6\`, \`#ec4899\`, and \`#3b82f6\`).

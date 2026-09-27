@@ -199,12 +199,16 @@ likable/
 ├── icons/                     # Extension branding icons (16px, 48px, 128px, SVG)
 ├── scripts/
 │   └── build.js               # Production bundle packager
-├── test_bridge.js             # End-to-end bridge test runner
-├── test_security.js           # Security, token authentication & loopback binding tests
-├── test_hud.js                # HUD component & state unit tests
-├── test_presets.js            # Design preset extraction & validation tests
-├── test_content.js            # Content-script bridge error regression tests
-└── test_manifest.js           # User-activated permission model regression tests
+└── tests/
+    ├── test_bridge.js         # End-to-end bridge test runner
+    ├── test_codex.js          # Codex bridge integration test
+    ├── test_security.js       # Security, token authentication & loopback binding tests
+    ├── test_hud.js            # HUD component & state unit tests
+    ├── test_presets.js        # Design preset extraction & validation tests
+    ├── test_content.js        # Content-script bridge error regression tests
+    ├── test_manifest.js       # User-activated permission model regression tests
+    ├── test_support.js        # Shared test helpers
+    └── test_ui.html           # Manual HUD/overlay UI test page
 ```
 
 ---
