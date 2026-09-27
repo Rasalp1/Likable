@@ -1,10 +1,11 @@
 /**
- * Likeable - DOM Ingester & Mirror ID Tagger
+ * Likable - DOM Ingester & Mirror ID Tagger
  * Scans the active webpage, assigns persistent data-mirror-id attributes,
  * and extracts a clean semantic tree for AI redesign synthesis.
  */
 
-window.LikeableIngester = window.DesignifyIngester = window.LikeableIngester || window.DesignifyIngester || {
+window.LikableIngester = window.LikeableIngester = window.DesignifyIngester =
+  window.LikableIngester || window.LikeableIngester || window.DesignifyIngester || {
   mirrorCounter: 0,
 
   /**
@@ -32,7 +33,7 @@ window.LikeableIngester = window.DesignifyIngester = window.LikeableIngester || 
       }
     });
 
-    console.log(`[Likeable Ingester] Tagged ${this.mirrorCounter} semantic & interactive elements.`);
+    console.log(`[Likable Ingester] Tagged ${this.mirrorCounter} semantic & interactive elements.`);
   },
 
   /**
@@ -402,9 +403,9 @@ window.LikeableIngester = window.DesignifyIngester = window.LikeableIngester || 
 
     // 7. Synthesized Mandate Document
     const mandate = `
-### 🚨 MANDATORY ${siteName.toUpperCase()} DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **${presetLabel}** aesthetic preset (extracted from ${totalUrl}).
-You MUST faithfully replicate this exact design language across all components:
+### ${siteName}-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset derived from visual tokens observed at ${totalUrl}.
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **${isDark ? 'Dark Mode' : 'Light Mode'} Atmosphere & Canvas**:
    - Canvas Background: \`${canvasBg}\`.
    - Card Surfaces: \`${surface}\` with border \`${cardBorder}\`.
@@ -426,7 +427,7 @@ You MUST faithfully replicate this exact design language across all components:
    - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of ${presetLabel} (${totalUrl}). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use precise hairline borders (\`${cardBorder}\`) and authentic layered shadows (\`${cardShadow}\`) rather than tacky glowing outlines or AI slop gradients.
 `;
 
@@ -441,7 +442,7 @@ You MUST faithfully replicate this exact design language across all components:
       originUrl: totalUrl,
       url: totalUrl,
       createdAt: Date.now(),
-      description: `Extracted from ${presetLabel} (${totalUrl}): ${isDark ? 'dark' : 'light'} canvas, ${cardRadius} card radii, ${headingFont} typography.`,
+      description: `Independent preset inspired by observed styles at ${presetLabel} (${totalUrl}): ${isDark ? 'dark' : 'light'} canvas, ${cardRadius} card radii, ${headingFont} typography.`,
       palette: {
         background: canvasBg,
         surface,
@@ -481,4 +482,4 @@ You MUST faithfully replicate this exact design language across all components:
     };
   }
 };
-window.LikeableIngester = window.DesignifyIngester;
+window.LikableIngester = window.LikeableIngester = window.DesignifyIngester;

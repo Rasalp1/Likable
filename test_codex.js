@@ -14,7 +14,7 @@ async function fetchWithRetry(url, options, maxRetries = 15, delayMs = 3000) {
 }
 
 /**
- * Quick verification for Codex engine in Likeable Bridge
+ * Quick verification for Codex engine in Likable Bridge
  */
 async function testCodex() {
   console.log('Testing Codex Engine via Bridge Server...');

@@ -1,5 +1,5 @@
 /**
- * Prompt engineering templates for Likeable AI Redesign Engine
+ * Prompt engineering templates for Likable AI Redesign Engine
  */
 
 export const THEME_PRESETS = {
@@ -10,7 +10,7 @@ export const THEME_PRESETS = {
     isCustom: false,
     originUrl: 'https://linear.app',
     createdAt: 0,
-    description: 'Extracted from Linear (linear.app): dark canvas, 9px card radii, Inter Variable typography.',
+    description: 'Independent preset inspired by public visual conventions associated with Linear (linear.app): dark canvas, 9px card radii, Inter Variable typography.',
     palette: {
       background: '#08090a',
       surface: 'rgb(15, 16, 17)',
@@ -47,9 +47,9 @@ export const THEME_PRESETS = {
       headingTracking: '-1.408px'
     },
     mandate: `
-### 🚨 MANDATORY LINEAR DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Linear** aesthetic preset (extracted from https://linear.app).
-You MUST faithfully replicate this exact design language across all components:
+### LINEAR-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Linear** (https://linear.app).
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Dark Mode Atmosphere & Canvas**:
    - Canvas Background: \`#08090a\`.
    - Card Surfaces: \`rgb(15, 16, 17)\` with border \`0.5px solid rgba(255, 255, 255, 0.08)\`.
@@ -71,7 +71,7 @@ You MUST faithfully replicate this exact design language across all components:
    - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Linear (linear.app). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use precise hairline borders (\`0.5px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgb(35, 37, 42) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
 `
   },
@@ -119,9 +119,9 @@ You MUST faithfully replicate this exact design language across all components:
       headingTracking: '-0.025em'
     },
     mandate: `
-### 🚨 MANDATORY APPLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Apple** aesthetic preset (inspired by apple.com, macOS Sequoia, and Apple Human Interface Guidelines).
-You MUST faithfully replicate Apple's iconic design language across all components:
+### APPLE-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Apple** (https://apple.com), macOS, and common platform interface guidance.
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Light Mode Atmosphere & Canvas**:
    - Canvas Background: \`#fafafa\` (or \`#f5f5f7\`). Under NO circumstances produce a dark mode or black interface when Apple is selected!
    - Card Surfaces: Crisp white (\`#ffffff\`) with border \`1px solid rgba(0, 0, 0, 0.06)\`.
@@ -131,7 +131,7 @@ You MUST faithfully replicate Apple's iconic design language across all componen
      \`background: rgba(255, 255, 255, 0.8) !important; backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.08);\`
    - Clean, spaced navigation items with subtle hover transitions.
 3. **Signature Apple Blue Pill Buttons & Actions**:
-   - Primary CTA buttons MUST be iconic Apple Blue pill buttons:
+   - Primary CTA buttons can use a restrained blue pill treatment:
      \`background: #0071e3 !important; color: #ffffff !important; border-radius: 980px !important; padding: 11px 24px !important; font-size: 14px !important; font-weight: 500 !important; border: none !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);\`
      Hover state: \`background: #0077ed !important; transform: scale(1.02);\`
    - Secondary actions: Subtle light gray pill buttons (\`background: rgba(0, 0, 0, 0.05); color: #1d1d1f; border-radius: 980px; padding: 11px 24px; border: none;\`) or elegant text links with blue chevron \`›\`.
@@ -144,7 +144,7 @@ You MUST faithfully replicate Apple's iconic design language across all componen
    - Ultra-soft diffuse shadows: \`box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);\`.
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Apple. Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use pristine whitespace, subtle hairline borders (\`1px solid rgba(0, 0, 0, 0.06)\`), and ultra-soft diffuse drop shadows rather than tacky glowing outlines or AI slop gradients.
 `
   },
@@ -155,7 +155,7 @@ You MUST faithfully replicate Apple's iconic design language across all componen
     isCustom: false,
     originUrl: 'https://lovable.dev',
     createdAt: 0,
-    description: 'Extracted from Lovable (lovable.dev): dark canvas, 12px card radii, Camera Plain Variable typography.',
+    description: 'Independent preset inspired by public visual conventions associated with Lovable (lovable.dev): dark canvas, 12px card radii, Camera Plain Variable typography.',
     palette: {
       background: '#0d0e12',
       surface: 'rgb(28, 28, 28)',
@@ -192,9 +192,9 @@ You MUST faithfully replicate Apple's iconic design language across all componen
       headingTracking: '-0.025em'
     },
     mandate: `
-### 🚨 MANDATORY LOVABLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Lovable** aesthetic preset (extracted from https://lovable.dev).
-You MUST faithfully replicate this exact design language across all components:
+### LOVABLE-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Lovable** (https://lovable.dev).
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Dark Mode Atmosphere & Canvas**:
    - Canvas Background: \`#0d0e12\`.
    - Card Surfaces: \`rgb(28, 28, 28)\` with border \`1px solid rgba(255, 255, 255, 0.08)\`.
@@ -215,7 +215,7 @@ You MUST faithfully replicate this exact design language across all components:
    - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Lovable (lovable.dev). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use precise hairline borders (\`1px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
 `
   }
@@ -243,7 +243,7 @@ export function buildRedesignPrompt({ url, title, metaDescription, themeKey, cus
       isCustom: true,
       originUrl: customPreset.originUrl || '',
       createdAt: customPreset.createdAt || 0,
-      description: customPreset.description || `Bespoke extracted design language replicating the visual hierarchy, layout rhythm, card geometry, typography, and color discipline of ${customPreset.originUrl || customPreset.name}.`,
+      description: customPreset.description || `Independent preset inspired by observed visual tokens at ${customPreset.originUrl || customPreset.name}: layout rhythm, card geometry, typography, and color discipline.`,
       palette: {
         background: pal.background || '#0d0e12',
         surface: pal.surface || 'rgba(255, 255, 255, 0.05)',
@@ -261,15 +261,15 @@ export function buildRedesignPrompt({ url, title, metaDescription, themeKey, cus
       typography: customPreset.typography
     };
     mandate = customPreset.mandate || `
-### 🚨 MANDATORY ${customPreset.name.toUpperCase()} DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-Replicate the bespoke design language of ${customPreset.name}:
+### ${customPreset.name.toUpperCase()}-INSPIRED DESIGN SYSTEM GUIDANCE:
+Use the observed visual tokens associated with ${customPreset.name} as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Atmosphere & Canvas**:
    - Canvas: ${theme.palette.background}
    - Surfaces: ${theme.palette.surface} with border ${theme.palette.border}
    - Accent CTA: ${theme.palette.accent}
 2. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Avoid generic AI clichés, purple/neon glow blobs, floating spheres, and cookie-cutter SaaS layouts.
-   - Emulate authentic human craftsmanship with genuine copy, real headlines, domain-specific information density, and restrained physical depth.
+   - Preserve the target page's genuine copy, real headlines, domain-specific information density, and restrained physical depth.
 `;
   } else {
     const rawKey = (themeKey || 'linear').toLowerCase();

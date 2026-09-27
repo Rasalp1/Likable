@@ -1,10 +1,11 @@
 /**
- * Likeable - Design Cache & History Manager
+ * Likable - Design Cache & History Manager
  * Persists generated redesigns in chrome.storage.local (with localStorage fallback)
  * allowing instant switching between designs without calling AI again.
  */
 
-window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.DesignifyCache || {
+window.LikableCache = window.LikeableCache = window.DesignifyCache =
+  window.LikableCache || window.LikeableCache || window.DesignifyCache || {
   currentActiveId: null,
   cachedList: [],
 
@@ -24,12 +25,20 @@ window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.De
   getStorageKey(url) {
     const totalUrl = this.getTotalUrl(url);
     // Key by total URL so query params, routes, and hash paths maintain distinct redesign history
-    return `likeable_designs_${totalUrl}`;
+    return `likable_designs_${totalUrl}`;
   },
 
   getLegacyStorageKey(url) {
     const totalUrl = this.getTotalUrl(url);
-    return `designify_designs_${totalUrl}`;
+    return `likeable_designs_${totalUrl}`;
+  },
+
+  getLegacyStorageKeys(url) {
+    const totalUrl = this.getTotalUrl(url);
+    return [
+      `likeable_designs_${totalUrl}`,
+      `designify_designs_${totalUrl}`
+    ];
   },
 
   getLegacyPathStorageKeys() {
@@ -37,6 +46,7 @@ window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.De
       if (typeof window !== 'undefined' && window.location && window.location.origin) {
         const originPath = `${window.location.origin}${window.location.pathname || ''}`;
         return [
+          `likable_designs_${originPath}`,
           `likeable_designs_${originPath}`,
           `designify_designs_${originPath}`
         ];
@@ -50,34 +60,37 @@ window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.De
    */
   async loadDesigns(url) {
     const key = this.getStorageKey(url);
-    const legacyKey = this.getLegacyStorageKey(url);
+    const legacyKeys = this.getLegacyStorageKeys(url);
     const legacyPathKeys = this.getLegacyPathStorageKeys();
-    const queryKeys = [key, legacyKey, ...legacyPathKeys];
+    const queryKeys = [key, ...legacyKeys, ...legacyPathKeys];
 
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const result = await chrome.storage.local.get(queryKeys);
         if (Array.isArray(result[key]) && result[key].length > 0) {
           this.cachedList = result[key];
-        } else if (Array.isArray(result[legacyKey]) && result[legacyKey].length > 0) {
-          this.cachedList = result[legacyKey];
         } else {
-          const found = legacyPathKeys.find((k) => Array.isArray(result[k]) && result[k].length > 0);
-          this.cachedList = found ? result[found] : [];
+          const foundLegacy = legacyKeys.find((k) => Array.isArray(result[k]) && result[k].length > 0);
+          if (foundLegacy) {
+            this.cachedList = result[foundLegacy];
+          } else {
+            const foundPath = legacyPathKeys.find((k) => Array.isArray(result[k]) && result[k].length > 0);
+            this.cachedList = foundPath ? result[foundPath] : [];
+          }
         }
       } else {
         const raw =
           localStorage.getItem(key) ||
-          localStorage.getItem(legacyKey) ||
+          legacyKeys.map((k) => localStorage.getItem(k)).find(Boolean) ||
           legacyPathKeys.map((k) => localStorage.getItem(k)).find(Boolean);
         this.cachedList = raw ? JSON.parse(raw) : [];
       }
     } catch (e) {
-      console.warn('[Likeable Cache] Failed to load from chrome.storage:', e);
+      console.warn('[Likable Cache] Failed to load from chrome.storage:', e);
       try {
         const raw =
           localStorage.getItem(key) ||
-          localStorage.getItem(legacyKey) ||
+          legacyKeys.map((k) => localStorage.getItem(k)).find(Boolean) ||
           legacyPathKeys.map((k) => localStorage.getItem(k)).find(Boolean);
         this.cachedList = raw ? JSON.parse(raw) : [];
       } catch {}
@@ -131,10 +144,10 @@ window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.De
       }
       localStorage.setItem(key, JSON.stringify(this.cachedList));
     } catch (e) {
-      console.warn('[Likeable Cache] Save error:', e);
+      console.warn('[Likable Cache] Save error:', e);
     }
 
-    console.log(`[Likeable Cache] Saved design "${entry.themeName}" (${entry.id}) for route "${totalUrl}". Total cached: ${this.cachedList.length}`);
+    console.log(`[Likable Cache] Saved design "${entry.themeName}" (${entry.id}) for route "${totalUrl}". Total cached: ${this.cachedList.length}`);
     return entry;
   },
 
@@ -182,4 +195,4 @@ window.LikeableCache = window.DesignifyCache = window.LikeableCache || window.De
     } catch {}
   }
 };
-window.LikeableCache = window.DesignifyCache;
+window.LikableCache = window.LikeableCache = window.DesignifyCache;

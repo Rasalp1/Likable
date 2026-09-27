@@ -13,6 +13,6 @@ Allow time for a fix before publicly disclosing details. Never include bridge to
 
 ## Security model
 
-The bridge listens only on `127.0.0.1`, requires a bearer token for API operations, limits request and generated-output sizes, allows one redesign process at a time, and terminates processes that exceed the timeout. The extension does not automatically inject into every page; it requires an explicit user action.
+The bridge listens only on `127.0.0.1`, requires a bearer token for API operations, limits request and generated-output sizes, allows one redesign process at a time, and terminates processes that exceed the timeout. The extension requests temporary `activeTab` access and injects its controls only after the user opens the popup for the active tab. It does not inject content scripts into every page or existing tabs during installation.
 
-The AI-generated markup is treated as untrusted. Likeable removes active elements and external resource loads before rendering it in the Shadow DOM. This is defense-in-depth, not a guarantee that arbitrary websites or CLI providers are safe.
+The AI-generated markup is treated as untrusted. Likable removes active elements and external resource loads before rendering it in the Shadow DOM. This is defense-in-depth, not a guarantee that arbitrary websites, exported files, or CLI providers are safe. The selected CLI may transmit captured page data to its provider, so users must review that provider's data handling policy before redesigning sensitive pages.

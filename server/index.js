@@ -127,10 +127,15 @@ export function validatePayload(payload) {
 }
 
 export function loadBridgeToken({ env = process.env, tokenPath = TOKEN_PATH } = {}) {
-  const fromEnvironment = env.LIKEABLE_BRIDGE_TOKEN?.trim() || env.DESIGNIFY_BRIDGE_TOKEN?.trim();
+  const fromEnvironment =
+    env.LIKABLE_BRIDGE_TOKEN?.trim() ||
+    env.LIKEABLE_BRIDGE_TOKEN?.trim() ||
+    env.DESIGNIFY_BRIDGE_TOKEN?.trim();
   if (fromEnvironment) {
     if (fromEnvironment.length < 32) {
-      const varName = env.LIKEABLE_BRIDGE_TOKEN ? 'LIKEABLE_BRIDGE_TOKEN' : 'DESIGNIFY_BRIDGE_TOKEN';
+      const varName = env.LIKABLE_BRIDGE_TOKEN
+        ? 'LIKABLE_BRIDGE_TOKEN'
+        : (env.LIKEABLE_BRIDGE_TOKEN ? 'LIKEABLE_BRIDGE_TOKEN' : 'DESIGNIFY_BRIDGE_TOKEN');
       throw new Error(`${varName} must be at least 32 characters long.`);
     }
     return fromEnvironment;
@@ -160,7 +165,10 @@ function requestToken(req) {
   if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
     return authorization.slice('Bearer '.length).trim();
   }
-  const headerToken = req.headers['x-likeable-token'] || req.headers['x-designify-token'];
+  const headerToken =
+    req.headers['x-likable-token'] ||
+    req.headers['x-likeable-token'] ||
+    req.headers['x-designify-token'];
   return typeof headerToken === 'string' ? headerToken.trim() : '';
 }
 
@@ -182,7 +190,7 @@ function setCorsHeaders(req, res) {
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Likeable-Token, X-Designify-Token');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Likable-Token, X-Likeable-Token, X-Designify-Token');
 }
 
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
@@ -195,7 +203,7 @@ function sendJson(res, statusCode, payload, extraHeaders = {}) {
 }
 
 function sendUnauthorized(res) {
-  sendJson(res, 401, { error: 'Unauthorized. Configure the Likeable bridge token in the extension.' }, {
+  sendJson(res, 401, { error: 'Unauthorized. Configure the Likable bridge token in the extension.' }, {
     'WWW-Authenticate': 'Bearer'
   });
 }
@@ -410,7 +418,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
     if (url.pathname === '/api/health' && req.method === 'GET') {
       const response = {
         status: 'ok',
-        service: 'likeable-bridge',
+        service: 'likable-bridge',
         authenticated: authorized,
         requiresAuth: true
       };
@@ -490,7 +498,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
 
     try {
       if (payload.screenshot) {
-        tempScreenshotPath = path.join(os.tmpdir(), `likeable_snap_${crypto.randomUUID()}.bin`);
+        tempScreenshotPath = path.join(os.tmpdir(), `likable_snap_${crypto.randomUUID()}.bin`);
         fs.writeFileSync(tempScreenshotPath, payload.screenshot, { mode: 0o600, flag: 'wx' });
       }
 
@@ -530,7 +538,7 @@ export function createServer({ token, runCliImpl = runCLI, maxConcurrent = DEFAU
       });
     } catch (error) {
       const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
-      if (statusCode >= 500) console.error('[Likeable Bridge] Request failed:', error.message);
+      if (statusCode >= 500) console.error('[Likable Bridge] Request failed:', error.message);
       if (!res.writableEnded) {
         sendJson(res, statusCode, { error: statusCode >= 500 ? 'Redesign request failed.' : error.message });
       }
@@ -552,11 +560,11 @@ export function startServer({ port = positiveInteger(process.env.PORT, DEFAULT_P
   const server = createServer({ token });
 
   server.on('error', (error) => {
-    console.error(`[Likeable Bridge] Server error: ${error.message}`);
+    console.error(`[Likable Bridge] Server error: ${error.message}`);
     process.exitCode = 1;
   });
   server.listen(port, HOST, () => {
-    console.log(`Likeable Bridge Server listening on http://${HOST}:${port}`);
+    console.log(`Likable Bridge Server listening on http://${HOST}:${port}`);
     console.log(`Bridge token (copy into the extension popup): ${token}`);
     console.log(`Bridge token file: ${TOKEN_PATH}`);
     console.log(`Claude CLI: ${claudeStatus()}`);

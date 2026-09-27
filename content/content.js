@@ -1,8 +1,10 @@
 /**
- * Likeable - Main Content Script Coordinator
+ * Likable - Main Content Script Coordinator
  * Orchestrates DOM ingestion, screenshot capture, bridge communication,
  * and Shadow DOM projection.
  */
+
+const BRIDGE_URL = 'http://127.0.0.1:3030';
 
 function ensureStylesInjected() {
   if (!document.getElementById('designify-hud-style')) {
@@ -14,7 +16,8 @@ function ensureStylesInjected() {
   }
 }
 
-window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordinator || window.DesignifyCoordinator || {
+window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordinator =
+  window.LikableCoordinator || window.LikeableCoordinator || window.DesignifyCoordinator || {
   initialized: false,
 
   async init() {
@@ -32,7 +35,7 @@ window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordi
    * Main pipeline: Ingest -> Capture Screenshot -> Call Bridge -> Project in Shadow DOM
    */
   async runRedesign({ theme, engine, customPrompt }) {
-    console.log(`[Likeable] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
+    console.log(`[Likable] Starting redesign pipeline (Theme: ${theme}, Engine: ${engine})...`);
 
     // 1. Ingest DOM and tag elements
     window.DesignifyHUD?.updateProgress(20, 'Reading DOM elements...', 'Scanning page structure & tagging interactive elements');
@@ -47,12 +50,12 @@ window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordi
       });
       if (response && response.success) {
         screenshotBase64 = response.dataUrl;
-        console.log('[Likeable] Viewport screenshot captured successfully.');
+        console.log('[Likable] Viewport screenshot captured successfully.');
       } else {
-        console.warn('[Likeable] Screenshot capture skipped or failed:', response?.error);
+        console.warn('[Likable] Screenshot capture skipped or failed:', response?.error);
       }
     } catch (e) {
-      console.warn('[Likeable] Background screenshot message failed:', e);
+      console.warn('[Likable] Background screenshot message failed:', e);
     }
 
     // 3. Assemble payload
@@ -94,7 +97,7 @@ window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordi
     window.DesignifyHUD?.updateProgress(55, `Redesigning structure with ${engineLabel}...`, 'Synthesizing modern layout, color palette & typography');
     window.DesignifyHUD?.startSynthesisTicker(engine);
 
-    console.log(`[Likeable] Sending request to local bridge...`);
+    console.log(`[Likable] Sending request to local bridge...`);
     let result = null;
 
     try {
@@ -111,22 +114,22 @@ window.LikeableCoordinator = window.DesignifyCoordinator = window.LikeableCoordi
         }
         result = bgRes.data;
       } else {
-        throw new Error('Bridge requests require the Likeable extension context.');
+        throw new Error('Bridge requests require the Likable extension context.');
       }
     } catch (err) {
       window.DesignifyHUD?.stopSynthesisTicker();
-      console.warn('[Likeable] Bridge request failed or timed out:', err);
+      console.warn('[Likable] Bridge request failed or timed out:', err);
       // Fallback: If bridge server was unreachable, throw with clear instructions
-      throw new Error(`Could not communicate with Likeable Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
+      throw new Error(`Could not communicate with Likable Bridge Server at ${BRIDGE_URL}. Make sure 'node server/index.js' is running! (${err.message})`);
     }
 
     window.DesignifyHUD?.stopSynthesisTicker();
 
     if (!result || !result.html) {
-      throw new Error('Likeable bridge did not return valid redesign markup.');
+      throw new Error('Likable bridge did not return valid redesign markup.');
     }
 
-    console.log('[Likeable] Redesign received from AI! Projecting into Shadow DOM...');
+    console.log('[Likable] Redesign received from AI! Projecting into Shadow DOM...');
     window.DesignifyHUD?.updateProgress(90, 'Projecting Shadow DOM...', 'Mounting isolated design and linking bi-directional events');
 
     // 5. Project the redesign inside the Shadow DOM overlay
@@ -164,4 +167,4 @@ if (document.readyState === 'loading') {
 } else {
   window.DesignifyCoordinator.init();
 }
-window.LikeableCoordinator = window.DesignifyCoordinator;
+window.LikableCoordinator = window.LikeableCoordinator = window.DesignifyCoordinator;

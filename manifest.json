@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Likeable - AI Live Website Redesign",
+  "name": "Likable - AI Live Website Redesign",
   "version": "1.1.0",
   "description": "User-activated AI website redesign with a local Claude or Codex bridge and live interaction mirroring.",
   "permissions": [
@@ -10,29 +10,12 @@
     "tabs"
   ],
   "host_permissions": [
-    "<all_urls>",
     "http://127.0.0.1:3030/*",
     "http://localhost:3030/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": [
-        "content/ingester.js",
-        "content/cache.js",
-        "content/overlay.js",
-        "content/hud.js",
-        "content/content.js"
-      ],
-      "css": [
-        "content/hud.css"
-      ],
-      "run_at": "document_end"
-    }
-  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -51,7 +34,7 @@
       "resources": [
         "content/hud.css"
       ],
-      "matches": ["<all_urls>"]
+      "matches": ["http://*/*", "https://*/*"]
     }
   ]
 }

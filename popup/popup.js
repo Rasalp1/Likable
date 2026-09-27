@@ -1,13 +1,13 @@
 /**
- * Likeable Popup Script
+ * Likable Popup Script
  */
 
-const BRIDGE_TOKEN_KEY = 'likeableBridgeToken';
-const LEGACY_BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+const BRIDGE_TOKEN_KEY = 'likableBridgeToken';
+const LEGACY_BRIDGE_TOKEN_KEYS = ['likeableBridgeToken', 'designifyBridgeToken'];
 
 async function getStoredToken() {
-  const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, LEGACY_BRIDGE_TOKEN_KEY]);
-  const token = result[BRIDGE_TOKEN_KEY] || result[LEGACY_BRIDGE_TOKEN_KEY];
+  const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, ...LEGACY_BRIDGE_TOKEN_KEYS]);
+  const token = result[BRIDGE_TOKEN_KEY] || result['likeableBridgeToken'] || result['designifyBridgeToken'];
   return typeof token === 'string' ? token.trim() : '';
 }
 

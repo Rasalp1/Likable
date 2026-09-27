@@ -1,16 +1,16 @@
 /**
- * Likeable - Background Service Worker
+ * Likable - Background Service Worker
  * Handles screenshot capture, bridge health checks, and tab messaging
  */
 
 const BRIDGE_URL = 'http://127.0.0.1:3030';
-const BRIDGE_TOKEN_KEY = 'likeableBridgeToken';
-const LEGACY_BRIDGE_TOKEN_KEY = 'designifyBridgeToken';
+const BRIDGE_TOKEN_KEY = 'likableBridgeToken';
+const LEGACY_BRIDGE_TOKEN_KEYS = ['likeableBridgeToken', 'designifyBridgeToken'];
 
 async function getBridgeToken() {
   try {
-    const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, LEGACY_BRIDGE_TOKEN_KEY]);
-    const token = result[BRIDGE_TOKEN_KEY] || result[LEGACY_BRIDGE_TOKEN_KEY];
+    const result = await chrome.storage.local.get([BRIDGE_TOKEN_KEY, ...LEGACY_BRIDGE_TOKEN_KEYS]);
+    const token = result[BRIDGE_TOKEN_KEY] || result['likeableBridgeToken'] || result['designifyBridgeToken'];
     return typeof token === 'string' ? token.trim() : '';
   } catch {
     return '';
@@ -21,17 +21,18 @@ function authHeaders(token, headers = {}) {
   return token ? {
     ...headers,
     Authorization: `Bearer ${token}`,
+    'X-Likable-Token': token,
     'X-Likeable-Token': token,
     'X-Designify-Token': token
   } : headers;
 }
 
-// Handle runtime messages from content script or popup
+// Handle runtime messages from the popup and user-activated page controls.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'capture_visible_tab') {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
       if (chrome.runtime.lastError) {
-        console.error('[Likeable Background] Screenshot error:', chrome.runtime.lastError.message);
+        console.error('[Likable Background] Screenshot error:', chrome.runtime.lastError.message);
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
       } else {
         sendResponse({ success: true, dataUrl });
@@ -82,7 +83,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let [state] = await chrome.scripting.executeScript({
           target,
           func: () => {
-            const hud = window.LikeableHUD || window.DesignifyHUD;
+            const hud = window.LikableHUD || window.LikeableHUD || window.DesignifyHUD;
             return { mounted: !!hud, enabled: !!hud?.enabled };
           }
         });
@@ -96,9 +97,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             [state] = await chrome.scripting.executeScript({
               target,
               func: async () => {
-                const coord = window.LikeableCoordinator || window.DesignifyCoordinator;
+                const coord = window.LikableCoordinator || window.LikeableCoordinator || window.DesignifyCoordinator;
                 if (coord) await coord.init();
-                const hud = window.LikeableHUD || window.DesignifyHUD;
+                const hud = window.LikableHUD || window.LikeableHUD || window.DesignifyHUD;
                 return { mounted: !!hud, enabled: !!hud?.enabled };
               }
             });
@@ -111,9 +112,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const [result] = await chrome.scripting.executeScript({
           target,
           func: async (enabled) => {
-            const hud = window.LikeableHUD || window.DesignifyHUD;
+            const hud = window.LikableHUD || window.LikeableHUD || window.DesignifyHUD;
             if (!hud) return false;
-            const coord = window.LikeableCoordinator || window.DesignifyCoordinator;
+            const coord = window.LikableCoordinator || window.LikeableCoordinator || window.DesignifyCoordinator;
             if (coord) await coord.init();
             hud.setEnabled(enabled);
             return hud.enabled;
@@ -127,20 +128,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })();
     return true;
   }
-});
-
-chrome.runtime.onInstalled?.addListener(async () => {
-  try {
-    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
-    for (const tab of tabs) {
-      if (!tab.id) continue;
-      try {
-        await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content/hud.css'] });
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: ['content/ingester.js', 'content/cache.js', 'content/overlay.js', 'content/hud.js', 'content/content.js']
-        });
-      } catch {}
-    }
-  } catch {}
 });

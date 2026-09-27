@@ -1,7 +1,7 @@
-# Likeable - Loveable for live websites
+# Likable - Local-first redesigns for live websites
 
 <p align="center">
-  <img src="icons/icon128.png" alt="Likeable Logo" width="80" height="80" />
+  <img src="icons/icon128.png" alt="Likable Logo" width="80" height="80" />
 </p>
 
 <p align="center">
@@ -17,11 +17,11 @@
 
 ---
 
-## What is Likeable?
+## What is Likable?
 
-Have you ever browsed an indispensable web application or reference site that looks like it was built two decades ago? **Likeable** is an intelligent Chrome extension (Manifest V3) that redesigns any live website on the fly into a state-of-the-art, high-craft web experience.
+Have you ever browsed an indispensable web application or reference site that looks like it was built two decades ago? **Likable** is an intelligent Chrome extension (Manifest V3) that redesigns any live website on the fly into a state-of-the-art, high-craft web experience.
 
-Unlike static screenshot restylers or mockup generators, **Likeable preserves website functionality**. The redesigned page lives inside an isolated **Shadow DOM overlay** rendered directly over the original page. Through real-time **Bi-directional Event Mirroring**, clicking buttons or links, typing into search boxes, and submitting forms in the redesigned interface trigger the exact corresponding interactions on the real underlying site.
+Unlike static screenshot restylers or mockup generators, **Likable preserves website functionality**. The redesigned page lives inside an isolated **Shadow DOM overlay** rendered directly over the original page. Through real-time **Bi-directional Event Mirroring**, clicking buttons or links, typing into search boxes, and submitting forms in the redesigned interface trigger the exact corresponding interactions on the real underlying site.
 
 ### How It Works Under the Hood
 
@@ -57,12 +57,15 @@ Unlike static screenshot restylers or mockup generators, **Likeable preserves we
 
 - **Isolated Shadow DOM**: Complete style insulation ensures host website CSS never breaks the redesign, and redesign CSS never bleeds into the host.
 - **Bi-directional Event Mirroring**: Seamlessly browse, search, and navigate through the redesign while the underlying website executes real logic.
-- **Local-First & Private**: Leverages your existing local `claude` or `codex` CLI login. No cloud API proxy, no telemetry.
+- **Local-First Bridge**: Leverages your existing local `claude` or `codex` CLI login. Likable provides no hosted AI proxy and collects no telemetry.
 - **Bespoke Design Presets**:
-  - **Linear**: Sleek graphite atmosphere, bento-grid layouts, hairline borders, crisp Inter typography.
-  - **Apple**: Clean minimalist whitespace, signature Apple Blue pill buttons, frosted glass navigation, SF Pro typography.
-  - **Lovable**: High-craft dark canvas, luminous accents, refined spacing, and subtle pill badges.
-- **"Copy Page & Style" Preset Extraction**: Browse any site you love, click *Copy page & style*, and Likeable extracts its design DNA (color palette, radii, typography, spacing) as a brand new reusable preset!
+  - **Linear-inspired**: Sleek graphite atmosphere, bento-grid layouts, hairline borders, crisp Inter typography.
+  - **Apple-inspired**: Clean minimalist whitespace, blue pill buttons, frosted glass navigation, and system typography.
+- **Lovable-inspired**: High-craft dark canvas, luminous accents, refined spacing, and subtle pill badges.
+- **"Copy Page & Style" Preset Extraction**: Browse any site you love, click *Copy page & style*, and Likable extracts a reusable summary of its color palette, radii, typography, and spacing. It does not copy logos, proprietary assets, or page text into the preset.
+
+Preset names refer to visual inspiration only. Likable is independent and is not affiliated with the referenced products or companies.
+
 - **Interactive Inspection Tools**:
   - **Before/After Split Slider**: Drag a vertical divider to inspect the original site vs redesign side-by-side.
   - **Quick Peek (`Spacebar`)**: Hold `Space` (when not focused on an input) to instantly peek at the original website.
@@ -73,7 +76,7 @@ Unlike static screenshot restylers or mockup generators, **Likeable preserves we
 
 ## Setup & Installation Guide
 
-Follow these step-by-step instructions to get Likeable running on your machine in minutes.
+Follow these step-by-step instructions to get Likable running on your machine in minutes.
 
 ### Prerequisites
 
@@ -103,10 +106,10 @@ node server/index.js
 When started, the server generates a private authentication token saved to `.bridge_token` (git-ignored) and prints it in your terminal:
 
 ```
-[Likeable Bridge] Server running at http://127.0.0.1:3030
-[Likeable Bridge] Claude Code CLI: available (claude 1.x)
-[Likeable Bridge] Codex CLI: available (codex 1.x)
-[Likeable Bridge] Active Token: 4f8b9e... (copied to .bridge_token)
+[Likable Bridge] Server running at http://127.0.0.1:3030
+[Likable Bridge] Claude Code CLI: available (claude 1.x)
+[Likable Bridge] Codex CLI: available (codex 1.x)
+[Likable Bridge] Active Token: 4f8b9e... (copied to .bridge_token)
 ```
 
 > [!TIP]
@@ -124,42 +127,42 @@ When started, the server generates a private authentication token saved to `.bri
    *(Alternatively: Click the **three vertical dots** `⋮` in the top-right corner of Chrome → **Extensions** → **Manage Extensions**).*
 3. In the top-right corner of the Extensions page, toggle the **Developer mode** switch to **ON**.
 4. In the top-left toolbar that appears, click the **Load unpacked** button.
-5. In the file selection dialog, choose the cloned **`Likeable`** root folder (or the `dist/` directory if you ran `npm run build`) and click **Select** / **Open**.
-6. You should now see the **Likeable - AI Live Website Redesign** card appear with version `1.1.0`!
+5. In the file selection dialog, choose the cloned **`Likable`** root folder (or the `dist/` directory if you ran `npm run build`) and click **Select** / **Open**.
+6. You should now see the **Likable - AI Live Website Redesign** card appear with version `1.1.0`!
 
 ---
 
-### Step 3: Pin Likeable to the Chrome Toolbar
+### Step 3: Pin Likable to the Chrome Toolbar
 
 Pinning the extension ensures 1-click access whenever you are browsing:
 
 1. Look at the top-right corner of Chrome, directly next to your profile picture and the address bar.
 2. Click the **Extensions puzzle piece icon**.
-3. In the dropdown list that appears, find **Likeable - AI Live Website Redesign**.
-4. Click the gray **Pin icon** next to Likeable.
-5. The pin icon turns blue, and the **Likeable icon** now appears permanently in your Chrome toolbar!
+3. In the dropdown list that appears, find **Likable - AI Live Website Redesign**.
+4. Click the gray **Pin icon** next to Likable.
+5. The pin icon turns blue, and the **Likable icon** now appears permanently in your Chrome toolbar!
 
 ---
 
 ### Step 4: Connect the Extension to the Bridge
 
-1. Click the pinned **Likeable icon** in your Chrome toolbar to open the popup.
+1. Click the pinned **Likable icon** in your Chrome toolbar to open the popup.
 2. Paste the **Bridge Token** you copied in Step 1 into the **Bridge token** input field.
 3. Click the **Save** button.
 4. The top status indicator will switch to **Connected** with a green dot, and your local Claude Code / Codex versions will be displayed.
-5. Verify that the **Show page controls** toggle is enabled (it is on by default).
+5. Keep **Show page controls** enabled. Opening the popup grants Likable temporary access to the active website and injects the controls into that tab.
 
 ---
 
 ### Step 5: Redesign Any Website
 
 1. Navigate to any website you want to redesign.
-2. Look at the bottom-right corner of the web page: you will see the floating **Likeable launcher button**.
+2. Open the Likable popup once for the active tab. The floating **Likable launcher button** will appear at the bottom-right corner of the page.
 3. Click the launcher button to expand the glassmorphic in-page HUD.
 4. Select a style preset (**Linear**, **Apple**, or **Lovable**), or type your own instructions into the **Your direction** box (e.g., *"Dark bento-grid with neon cyan accents and soft pill buttons"*).
 5. Choose your preferred AI engine (**Claude** or **Codex**).
 6. Click **Redesign page**!
-7. Watch the live progress bar as Likeable reads the DOM, sends the multimodal snapshot to your CLI, and streams the new redesign onto the screen.
+7. Watch the live progress bar as Likable reads the DOM, sends the multimodal snapshot to your CLI, and streams the new redesign onto the screen.
 8. **Interact with the redesigned page**: Click links, type into search inputs, and submit forms—all interactions are mirrored in real time!
 9. Use the inspection tools:
    - Click **Compare** to drag the before/after divider.
@@ -172,7 +175,9 @@ Pinning the extension ensures 1-click access whenever you are browsing:
 ## Project Structure
 
 ```text
-likeable/
+likable/
+├── CONTRIBUTING.md           # Contribution and development guide
+├── CHANGELOG.md              # Release history
 ├── manifest.json              # Chrome Extension MV3 Manifest configuration
 ├── background.js              # Service Worker (viewport screenshot capture, bridge health)
 ├── content/
@@ -196,19 +201,24 @@ likeable/
 ├── test_bridge.js             # End-to-end bridge test runner
 ├── test_security.js           # Security, token authentication & loopback binding tests
 ├── test_hud.js                # HUD component & state unit tests
-└── test_presets.js            # Design preset extraction & validation tests
+├── test_presets.js            # Design preset extraction & validation tests
+├── test_content.js            # Content-script bridge error regression tests
+└── test_manifest.js           # User-activated permission model regression tests
 ```
 
 ---
 
 ## Privacy and Security
 
-Likeable is intentionally **local-first**:
+Likable is intentionally **local-first**:
 
-- **No Remote Intermediaries**: Your screenshots and DOM data never pass through third-party proxy servers. Everything is transmitted directly over loopback (`127.0.0.1:3030`) to your local CLI.
-- **Credential Protection**: Likeable's DOM ingester explicitly filters out password inputs, hidden fields, file inputs, sensitive tokens, and fields marked as credentials.
+- **User-activated page access**: Likable requests `activeTab` access and injects its controls only after you open the extension popup for the active tab. It does not install content scripts across every page or inject into existing tabs when installed.
+- **Explicit redesign capture**: The visible screenshot and selected DOM data are collected only after you click **Redesign page**. They are sent over loopback (`127.0.0.1:3030`) to the local bridge and then to the CLI you selected.
+- **Credential Protection**: Likable's DOM ingester explicitly filters out password inputs, hidden fields, file inputs, sensitive tokens, and fields marked as credentials.
 - **Bridge Token Authentication**: The local HTTP endpoint requires an auto-generated secret token (`.bridge_token`). Requests from unauthorized origins or missing bearer tokens are rejected with `401 Unauthorized`.
-- **Sensitive Page Warning**: Do not invoke redesigns on pages containing confidential or regulated personal data unless you have reviewed your local CLI provider's data handling policies.
+- **Provider responsibility**: Claude Code and Codex may transmit prompts, screenshots, and DOM data to their respective providers. Do not invoke redesigns on confidential or regulated pages unless you have reviewed the selected CLI provider's data handling policies.
+
+The extension needs broad page access at the moment of activation because it can redesign arbitrary websites, but the access is temporary and user initiated. The local bridge remains bound to `127.0.0.1` and is protected by the generated token.
 
 For detailed security guidelines and disclosure policies, see [SECURITY.md](SECURITY.md).
 
@@ -216,7 +226,7 @@ For detailed security guidelines and disclosure policies, see [SECURITY.md](SECU
 
 ## Testing
 
-Likeable includes a suite of automated unit and integration tests:
+Likable includes a suite of automated unit and integration tests:
 
 ```bash
 # Run deterministic unit and security tests (no CLI or network calls required)
@@ -228,6 +238,14 @@ npm run test:integration
 # Run the Codex bridge integration test (requires running bridge)
 npm run test:codex
 ```
+
+## Support and limitations
+
+- Chrome and Chromium based browsers are supported. Firefox is not currently supported.
+- Node.js 20 or newer is required for the bridge.
+- A locally installed and authenticated Claude Code or Codex CLI is required for redesign generation.
+- The project does not provide a hosted AI service or a browser store distribution package.
+- Generated redesigns are untrusted output and are sanitized before rendering, but provider output and the original page should still be treated as untrusted content.
 
 ---
 

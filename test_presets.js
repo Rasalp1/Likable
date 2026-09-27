@@ -402,11 +402,12 @@ test('DesignifyCache keys by total URL and distinguishes routes, query params, a
   vm.runInContext(cacheSource, context);
   const cache = context.window.DesignifyCache;
   assert.ok(cache, 'DesignifyCache must be mounted on window');
+  assert.equal(context.window.LikableCache, cache, 'LikableCache alias must match DesignifyCache');
   assert.equal(context.window.LikeableCache, cache, 'LikeableCache alias must match DesignifyCache');
 
   // Verify key format
   const key = cache.getStorageKey();
-  assert.equal(key, 'likeable_designs_https://app.example.com/dashboard?tab=billing#invoices');
+  assert.equal(key, 'likable_designs_https://app.example.com/dashboard?tab=billing#invoices');
 
   // Save a design for route 1
   await cache.saveDesign({
@@ -430,7 +431,7 @@ test('DesignifyCache keys by total URL and distinguishes routes, query params, a
   };
 
   const key2 = cache.getStorageKey();
-  assert.equal(key2, 'likeable_designs_https://app.example.com/dashboard?tab=analytics');
+  assert.equal(key2, 'likable_designs_https://app.example.com/dashboard?tab=analytics');
 
   // Load designs for new route - should be empty initially
   await cache.loadDesigns();

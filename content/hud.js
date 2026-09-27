@@ -1,8 +1,9 @@
 /**
- * Likeable - Floating Glassmorphic In-Page Control HUD
+ * Likable - Floating Glassmorphic In-Page Control HUD
  */
 
-window.LikeableHUD = window.DesignifyHUD = window.LikeableHUD || window.DesignifyHUD || {
+window.LikableHUD = window.LikeableHUD = window.DesignifyHUD =
+  window.LikableHUD || window.LikeableHUD || window.DesignifyHUD || {
   hudContainer: null,
   miniFab: null,
   enabled: true,
@@ -29,7 +30,7 @@ window.LikeableHUD = window.DesignifyHUD = window.LikeableHUD || window.Designif
       isCustom: false,
       originUrl: 'https://linear.app',
       createdAt: 0,
-      description: 'Extracted from Linear (linear.app): dark canvas, 9px card radii, Inter Variable typography.',
+      description: 'Independent preset inspired by public visual conventions associated with Linear (linear.app): dark canvas, 9px card radii, Inter Variable typography.',
       palette: {
         background: '#08090a',
         surface: 'rgb(15, 16, 17)',
@@ -66,9 +67,9 @@ window.LikeableHUD = window.DesignifyHUD = window.LikeableHUD || window.Designif
         headingTracking: '-1.408px'
       },
       mandate: `
-### 🚨 MANDATORY LINEAR DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Linear** aesthetic preset (extracted from https://linear.app).
-You MUST faithfully replicate this exact design language across all components:
+### LINEAR-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Linear** (https://linear.app).
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Dark Mode Atmosphere & Canvas**:
    - Canvas Background: \`#08090a\`.
    - Card Surfaces: \`rgb(15, 16, 17)\` with border \`0.5px solid rgba(255, 255, 255, 0.08)\`.
@@ -90,7 +91,7 @@ You MUST faithfully replicate this exact design language across all components:
    - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Linear (linear.app). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use precise hairline borders (\`0.5px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgb(35, 37, 42) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
 `
     },
@@ -138,9 +139,9 @@ You MUST faithfully replicate this exact design language across all components:
         headingTracking: '-0.025em'
       },
       mandate: `
-### 🚨 MANDATORY APPLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Apple** aesthetic preset (inspired by apple.com, macOS Sequoia, and Apple Human Interface Guidelines).
-You MUST faithfully replicate Apple's iconic design language across all components:
+### APPLE-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Apple** (https://apple.com), macOS, and common platform interface guidance.
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Light Mode Atmosphere & Canvas**:
    - Canvas Background: \`#fafafa\` (or \`#f5f5f7\`). Under NO circumstances produce a dark mode or black interface when Apple is selected!
    - Card Surfaces: Crisp white (\`#ffffff\`) with border \`1px solid rgba(0, 0, 0, 0.06)\`.
@@ -150,14 +151,14 @@ You MUST faithfully replicate Apple's iconic design language across all componen
      \`background: rgba(255, 255, 255, 0.8) !important; backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.08);\`
    - Clean, spaced navigation items with subtle hover transitions.
 3. **Signature Apple Blue Pill Buttons & Actions**:
-   - Primary CTA buttons MUST be iconic Apple Blue pill buttons:
+   - Primary CTA buttons can use a restrained blue pill treatment:
      \`background: #0071e3 !important; color: #ffffff !important; border-radius: 980px !important; padding: 11px 24px !important; font-size: 14px !important; font-weight: 500 !important; border: none !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);\`
      Hover state: \`background: #0077ed !important; transform: scale(1.02);\`.
    - Secondary actions: Subtle light gray pill buttons (\`background: rgba(0, 0, 0, 0.05); color: #1d1d1f; border-radius: 980px; padding: 11px 24px; border: none;\`) or elegant text links with blue chevron \`›\`.
    - Inputs & Search: Rounded 12px or pill search inputs with clean white fill, subtle \`#d2d2d7\` border, and Apple Blue focus glow (\`box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15); border-color: #0071e3;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Apple. Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use pristine whitespace, subtle hairline borders (\`1px solid rgba(0, 0, 0, 0.06)\`), and ultra-soft diffuse drop shadows rather than tacky glowing outlines or AI slop gradients.
 `
     },
@@ -168,7 +169,7 @@ You MUST faithfully replicate Apple's iconic design language across all componen
       isCustom: false,
       originUrl: 'https://lovable.dev',
       createdAt: 0,
-      description: 'Extracted from Lovable (lovable.dev): dark canvas, 12px card radii, Camera Plain Variable typography.',
+      description: 'Independent preset inspired by public visual conventions associated with Lovable (lovable.dev): dark canvas, 12px card radii, Camera Plain Variable typography.',
       palette: {
         background: '#0d0e12',
         surface: 'rgb(28, 28, 28)',
@@ -205,9 +206,9 @@ You MUST faithfully replicate Apple's iconic design language across all componen
         headingTracking: '-0.025em'
       },
       mandate: `
-### 🚨 MANDATORY LOVABLE DESIGN SYSTEM EXECUTION (NON-NEGOTIABLE):
-The user explicitly selected the **Lovable** aesthetic preset (extracted from https://lovable.dev).
-You MUST faithfully replicate this exact design language across all components:
+### LOVABLE-INSPIRED DESIGN SYSTEM GUIDANCE:
+The user selected an independent preset inspired by public visual conventions associated with **Lovable** (https://lovable.dev).
+Use these tokens as a starting point. Do not copy logos, proprietary assets, text, or distinctive trade dress:
 1. **Dark Mode Atmosphere & Canvas**:
    - Canvas Background: \`#0d0e12\`.
    - Card Surfaces: \`rgb(28, 28, 28)\` with border \`1px solid rgba(255, 255, 255, 0.08)\`.
@@ -228,7 +229,7 @@ You MUST faithfully replicate this exact design language across all components:
    - Micro-interaction: Snappy hover transition (\`transform: translateY(-1px); transition: all 0.2s ease;\`).
 6. **Bespoke Human Craft & Anti-AI-Generated Discipline (MANDATORY)**:
    - MUST NOT look AI-generated: Strictly avoid generic AI clichés, giant blurry purple/neon gradient spheres, floating glowing halo blobs, and cookie-cutter SaaS layouts.
-   - Real, authentic structure: Emulate the authentic craftsmanship and bespoke visual character of Lovable (lovable.dev). Preserve authentic content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
+   - Product-specific structure: Preserve the target page's content, real headlines, real navigation, and domain-specific layout density instead of replacing them with generic marketing placeholders.
    - Restrained physical depth: Use precise hairline borders (\`1px solid rgba(255, 255, 255, 0.08)\`) and authentic layered shadows (\`rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset\`) rather than tacky glowing outlines or AI slop gradients.
 `
     }
@@ -252,7 +253,7 @@ You MUST faithfully replicate this exact design language across all components:
         loaded = raw ? JSON.parse(raw) : [];
       }
     } catch (e) {
-      console.warn('[Likeable HUD] Failed to load custom presets from storage:', e);
+      console.warn('[Likable HUD] Failed to load custom presets from storage:', e);
       try {
         const raw = localStorage.getItem(key);
         loaded = raw ? JSON.parse(raw) : [];
@@ -390,7 +391,7 @@ You MUST faithfully replicate this exact design language across all components:
     if (!button) return;
     button.classList.toggle('active', this.isOpen);
     button.setAttribute('aria-expanded', String(this.isOpen));
-    button.setAttribute('aria-label', this.isOpen ? 'Close Likeable controls' : 'Open Likeable controls');
+    button.setAttribute('aria-label', this.isOpen ? 'Close Likable controls' : 'Open Likable controls');
   },
 
   showToast(message) {
@@ -439,7 +440,7 @@ You MUST faithfully replicate this exact design language across all components:
             this.render();
           }
         } catch (extractErr) {
-          console.warn('[Likeable] Failed to extract design preset:', extractErr);
+          console.warn('[Likable] Failed to extract design preset:', extractErr);
         }
       }
 
@@ -483,7 +484,7 @@ You MUST faithfully replicate this exact design language across all components:
         }, 1400);
       }
     } catch (err) {
-      console.error('[Likeable] Failed to copy website:', err);
+      console.error('[Likable] Failed to copy website:', err);
       if (copyBtn) copyBtn.dataset.copying = 'false';
     }
   },
@@ -500,14 +501,14 @@ You MUST faithfully replicate this exact design language across all components:
       window.DesignifyOverlay.hostElement.style.display !== 'none'
     ) {
       const { html, css, themeName, summary } = window.DesignifyOverlay.activeRedesign;
-      const safeThemeName = this.escapeHtml(themeName || 'Likeable Redesign');
+      const safeThemeName = this.escapeHtml(themeName || 'Likable Redesign');
       const safeSummary = this.escapeHtml(summary || '');
       codeToCopy = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Likeable Redesign - ${safeThemeName}</title>
+  <title>Likable Redesign - ${safeThemeName}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -527,14 +528,14 @@ You MUST faithfully replicate this exact design language across all components:
   </style>
 </head>
 <body>
-  <!-- Generated by Likeable AI Redesign System -->
+  <!-- Generated by Likable AI Redesign System -->
   <!-- Theme: ${safeThemeName} | ${safeSummary} -->
   ${html}
 </body>
 </html>`;
       isRedesign = true;
     } else {
-      // Clean clone of the original page without Likeable injected DOM elements
+      // Clean clone of the original page without Likable injected DOM elements
       const clone = document.documentElement.cloneNode(true);
       clone.querySelectorAll(
         '#designify-hud-root, #designify-mini-container, #designify-mini-fab, #designify-overlay-root, #designify-hud-toast, #designify-hud-style, script[src*="designify"]'
@@ -549,7 +550,7 @@ You MUST faithfully replicate this exact design language across all components:
         copied = true;
       }
     } catch (e) {
-      console.warn('[Likeable] navigator.clipboard failed, trying execCommand fallback:', e);
+      console.warn('[Likable] navigator.clipboard failed, trying execCommand fallback:', e);
     }
 
     if (!copied) {
@@ -567,7 +568,7 @@ You MUST faithfully replicate this exact design language across all components:
         copied = document.execCommand('copy');
         document.body.removeChild(textarea);
       } catch (err) {
-        console.error('[Likeable] Copy fallback failed:', err);
+        console.error('[Likable] Copy fallback failed:', err);
       }
     }
 
@@ -660,7 +661,7 @@ You MUST faithfully replicate this exact design language across all components:
     this.miniFab.id = 'designify-mini-container';
     this.miniFab.style.display = 'none';
     this.miniFab.innerHTML = `
-      <button id="designify-mini-fab-btn" class="designify-mini-fab-btn" title="Likeable" aria-label="Open Likeable controls" aria-expanded="false" aria-controls="designify-hud-root">
+      <button id="designify-mini-fab-btn" class="designify-mini-fab-btn" title="Likable" aria-label="Open Likable controls" aria-expanded="false" aria-controls="designify-hud-root">
         <svg class="designify-launcher-mark" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 10h18M10 10v11"/>
         </svg>
@@ -675,7 +676,7 @@ You MUST faithfully replicate this exact design language across all components:
     this.bindEvents();
     this.setupRouteListener();
     this.setEnabled(true);
-    console.log('[Likeable HUD] Mounted successfully with progress system.');
+    console.log('[Likable HUD] Mounted successfully with progress system.');
   },
 
   /**
@@ -759,12 +760,12 @@ You MUST faithfully replicate this exact design language across all components:
     }
 
     this.hudContainer.innerHTML = `
-      <section class="designify-hud-card" aria-label="Likeable controls">
+      <section class="designify-hud-card" aria-label="Likable controls">
         <!-- Header -->
         <div class="designify-hud-header">
           <div class="designify-hud-brand">
             <span class="designify-panel-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 10h18M10 10v11"/></svg></span>
-            <div>Likeable<span class="designify-panel-subtitle">A new look for this page</span></div>
+            <div>Likable<span class="designify-panel-subtitle">A new look for this page</span></div>
           </div>
           <div class="designify-hud-actions">
             <!-- Minimize Button -->
@@ -1046,7 +1047,7 @@ You MUST faithfully replicate this exact design language across all components:
       const currentUrl = (window.location && window.location.href) || '';
       if (currentUrl === lastUrl) return;
       lastUrl = currentUrl;
-      console.log(`[Likeable] Route changed to: ${currentUrl}`);
+      console.log(`[Likable] Route changed to: ${currentUrl}`);
 
       if (window.DesignifyCache && typeof window.DesignifyCache.loadDesigns === 'function') {
         await window.DesignifyCache.loadDesigns(currentUrl);
@@ -1085,26 +1086,33 @@ You MUST faithfully replicate this exact design language across all components:
 
     if (typeof history !== 'undefined') {
       const origPushState = history.pushState;
-      if (typeof origPushState === 'function' && !origPushState.__likeablePatched) {
+      if (typeof origPushState === 'function' && !origPushState.__likablePatched && !origPushState.__likeablePatched) {
         history.pushState = function (...args) {
           const res = origPushState.apply(this, args);
+          try { window.dispatchEvent(new Event('likable:routechange')); } catch {}
           try { window.dispatchEvent(new Event('likeable:routechange')); } catch {}
           return res;
         };
+        history.pushState.__likablePatched = true;
         history.pushState.__likeablePatched = true;
       }
 
       const origReplaceState = history.replaceState;
-      if (typeof origReplaceState === 'function' && !origReplaceState.__likeablePatched) {
+      if (typeof origReplaceState === 'function' && !origReplaceState.__likablePatched && !origReplaceState.__likeablePatched) {
         history.replaceState = function (...args) {
           const res = origReplaceState.apply(this, args);
+          try { window.dispatchEvent(new Event('likable:routechange')); } catch {}
           try { window.dispatchEvent(new Event('likeable:routechange')); } catch {}
           return res;
         };
+        history.replaceState.__likablePatched = true;
         history.replaceState.__likeablePatched = true;
       }
     }
 
+    window.addEventListener('likable:routechange', () => {
+      setTimeout(handleRouteChange, 50);
+    });
     window.addEventListener('likeable:routechange', () => {
       setTimeout(handleRouteChange, 50);
     });
@@ -1142,4 +1150,4 @@ You MUST faithfully replicate this exact design language across all components:
 };
 
 window.DesignifyHUD.rebuildPresets();
-window.LikeableHUD = window.DesignifyHUD;
+window.LikableHUD = window.LikeableHUD = window.DesignifyHUD;

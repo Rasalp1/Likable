@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.resolve(rootDir, 'dist');
 
-console.log('🔨 Building Likeable Chrome Extension into dist/ ...\n');
+console.log('🔨 Building Likable Chrome Extension into dist/ ...\n');
 
 // 1. Clean dist/
 if (fs.existsSync(distDir)) {
